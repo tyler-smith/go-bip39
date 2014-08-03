@@ -4,9 +4,12 @@ import (
 	"strings"
 )
 
-var WordList = strings.Split(words, "\n")
+// The wordlist to use
+var WordList = EnglishWordList
 
-var words = `abandon
+// Language-specific wordlists
+var EnglishWordList = strings.Split(englishWordList, "\n")
+var englishWordList = `abandon
 ability
 able
 about
