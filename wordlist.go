@@ -1,7 +1,7 @@
 package bip39
 
 import (
-  "strings"
+	"strings"
 )
 
 var WordList = strings.Split(words, "\n")
