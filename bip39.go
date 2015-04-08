@@ -117,3 +117,34 @@ func validateEntropyBitSize(bitSize int) error {
 	}
 	return nil
 }
+
+func IsMnemonicValid(mnemonic string) bool {
+	// Create a list of all the words in the mnemonic sentence
+	words := strings.Fields(mnemonic)
+
+	//Get num of words
+	numOfWords := len(words)
+
+	// The number of words should be 12, 15, 18, 21 or 24
+	if numOfWords%3 != 0 || numOfWords < 12 || numOfWords > 24 {
+		return false
+	}
+
+	// Check if all words belong in the wordlist
+	for i := 0; i < numOfWords; i++ {
+		if !contains(WordList, words[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
