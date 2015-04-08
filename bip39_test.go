@@ -1,9 +1,8 @@
-package bip39_test
+package bip39
 
 import (
 	"encoding/hex"
 	"github.com/stretchr/testify/assert"
-	"github.com/tyler-smith/go-bip39"
 	"testing"
 )
 
@@ -18,13 +17,73 @@ func TestBip39(t *testing.T) {
 		entropy, err := hex.DecodeString(vector.entropy)
 		assert.NoError(t, err)
 
-		mnemonic, err := bip39.NewMnemonic(entropy)
+		mnemonic, err := NewMnemonic(entropy)
 		assert.NoError(t, err)
 		assert.Equal(t, vector.mnemonic, mnemonic)
 
 		// expectedSeed, err := hex.DecodeString(vector.seed)
-		seed := bip39.NewSeed(mnemonic, "TREZOR")
+		seed := NewSeed(mnemonic, "TREZOR")
 		assert.Equal(t, vector.seed, hex.EncodeToString(seed))
+	}
+}
+
+func TestIsMnemonicValid(t *testing.T) {
+	for _, vector := range badMnemonicSentences() {
+		assert.Equal(t, IsMnemonicValid(vector.mnemonic), false)
+	}
+
+	for _, vector := range testVectors() {
+		assert.Equal(t, IsMnemonicValid(vector.mnemonic), true)
+	}
+}
+
+func badMnemonicSentences() []Vector {
+	return []Vector{
+		Vector{
+			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+		},
+		Vector{
+			mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow yellow",
+		},
+		Vector{
+			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice caged above",
+		},
+		Vector{
+			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo, wrong",
+		},
+		Vector{
+			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+		},
+		Vector{
+			mnemonic: "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will will will",
+		},
+		Vector{
+			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always.",
+		},
+		Vector{
+			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo why",
+		},
+		Vector{
+			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art art",
+		},
+		Vector{
+			mnemonic: "legal winner thank year wave sausage worth useful legal winner thanks year wave worth useful legal winner thank year wave sausage worth title",
+		},
+		Vector{
+			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letters advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless",
+		},
+		Vector{
+			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo voted",
+		},
+		Vector{
+			mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge",
+		},
+		Vector{
+			mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap",
+		},
+		Vector{
+			mnemonic: "dignity pass list indicate nasty",
+		},
 	}
 }
 
