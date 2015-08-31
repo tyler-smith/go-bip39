@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 )
@@ -73,6 +74,66 @@ func NewMnemonic(entropy []byte) (string, error) {
 	return strings.Join(words, " "), nil
 }
 
+func MnemonicToByteArray(mnemonic string) ([]byte, error) {
+	if IsMnemonicValid(mnemonic) == false {
+		return nil, fmt.Errorf("Invalid mnemonic")
+	}
+	mnemonicSlice := strings.Split(mnemonic, " ")
+
+	bitSize := len(mnemonicSlice) * 11
+	err := validateEntropyWithChecksumBitSize(bitSize)
+	if err != nil {
+		return nil, err
+	}
+	checksumSize := bitSize % 32
+
+	b := big.NewInt(0)
+	modulo := big.NewInt(2048)
+	for _, v := range mnemonicSlice {
+		index, found := ReverseWordMap[v]
+		if found == false {
+			return nil, fmt.Errorf("Word `%v` not found in reverse map", v)
+		}
+		add := big.NewInt(int64(index))
+		b = b.Mul(b, modulo)
+		b = b.Add(b, add)
+	}
+	hex := b.Bytes()
+	checksumModulo := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(int64(checksumSize)), nil)
+	entropy, _ := big.NewInt(0).DivMod(b, checksumModulo, big.NewInt(0))
+
+	entropyHex := entropy.Bytes()
+
+	byteSize := bitSize/8 + 1
+	if len(hex) != byteSize {
+		tmp := make([]byte, byteSize)
+		diff := byteSize - len(hex)
+		for i := 0; i < len(hex); i++ {
+			tmp[i+diff] = hex[i]
+		}
+		hex = tmp
+	}
+
+	validationHex := addChecksum(entropyHex)
+	if len(hex) != len(validationHex) {
+		panic("[]byte len mismatch - it shouldn't happen")
+	}
+	for i := range validationHex {
+		if hex[i] != validationHex[i] {
+			return nil, fmt.Errorf("Invalid byte at position %v", i)
+		}
+	}
+	return hex, nil
+}
+
+func NewSeedWithErrorChecking(mnemonic string, password string) ([]byte, error) {
+	_, err := MnemonicToByteArray(mnemonic)
+	if err != nil {
+		return nil, err
+	}
+	return NewSeed(mnemonic, password), nil
+}
+
 func NewSeed(mnemonic string, password string) []byte {
 	return pbkdf2.Key([]byte(mnemonic), []byte("mnemonic"+password), 2048, 64, sha512.New)
 }
@@ -114,6 +175,13 @@ func padByteSlice(slice []byte, length int) []byte {
 func validateEntropyBitSize(bitSize int) error {
 	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
 		return errors.New("Entropy length must be [128, 256] and a multiple of 32")
+	}
+	return nil
+}
+
+func validateEntropyWithChecksumBitSize(bitSize int) error {
+	if (bitSize != 128+4) && (bitSize != 160+5) && (bitSize != 192+6) && (bitSize != 224+7) && (bitSize != 256+8) {
+		return fmt.Errorf("Wrong entropy + checksum size - expected %v, got %v", int((bitSize-bitSize%32)+(bitSize-bitSize%32)/32), bitSize)
 	}
 	return nil
 }
