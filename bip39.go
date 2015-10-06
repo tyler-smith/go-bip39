@@ -115,6 +115,15 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	}
 
 	validationHex := addChecksum(entropyHex)
+	if len(validationHex) != byteSize {
+		tmp2 := make([]byte, byteSize)
+		diff2 := byteSize - len(validationHex)
+		for i := 0; i < len(validationHex); i++ {
+			tmp2[i+diff2] = validationHex[i]
+		}
+		validationHex = tmp2
+	}
+	
 	if len(hex) != len(validationHex) {
 		panic("[]byte len mismatch - it shouldn't happen")
 	}
