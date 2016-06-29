@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/pbkdf2"
 	"math/big"
 	"strings"
 
