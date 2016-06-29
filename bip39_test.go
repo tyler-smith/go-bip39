@@ -45,6 +45,13 @@ func TestIsMnemonicValid(t *testing.T) {
 	}
 }
 
+func TestInvalidMnemonicFails(t *testing.T) {
+	for _, vector := range badMnemonicSentences() {
+		_, err := MnemonicToByteArray(vector.mnemonic)
+		assert.NotNil(t, err)
+	}
+}
+
 func TestValidateEntropyWithChecksumBitSize(t *testing.T) {
 	// Good tests.
 	for i := 1; i <= (12*32 + 12); i++ {
@@ -65,10 +72,10 @@ func TestValidateEntropyWithChecksumBitSize(t *testing.T) {
 		}
 	}
 	// Bad Tests
-	// for i := 4; i <= 8; i++ {
-	// 	err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
-	// 	assert.NotNil(t, err)
-	// }
+	for i := 4; i <= 8; i++ {
+		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
+		assert.NotNil(t, err)
+	}
 }
 
 func TestNewEntropy(t *testing.T) {
