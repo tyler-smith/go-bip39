@@ -162,7 +162,7 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	}
 	for i := range validationHex {
 		if hex[i] != validationHex[i] {
-			return nil, fmt.Errorf("Invalid byte at position %v", i)
+			return nil, fmt.Errorf("Mnemonic checksum error. Check words are in correct order. (decoded byte %v)", i)
 		}
 	}
 	return hex, nil
