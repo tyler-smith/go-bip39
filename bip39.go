@@ -21,7 +21,7 @@ var (
 	BigTwo                  = big.NewInt(2)
 
 	// Wordlist sets the language used for the mnemonic
-	WordList       = EnglishWordList
+	WordList = EnglishWordList
 
 	// ReverseWordMap is a reverse lookup of Wordlist
 	ReverseWordMap = map[string]int{}
