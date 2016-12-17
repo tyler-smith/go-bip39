@@ -136,26 +136,11 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		hex = tmp
 	}
 
-	// Add padding (no extra byte, entropy itself does not contain checksum)
-	entropyByteSize := (bitSize - checksumSize) / 8
-	if len(entropyHex) != entropyByteSize {
-		tmp := make([]byte, entropyByteSize)
-		diff := entropyByteSize - len(entropyHex)
-		for i := 0; i < len(entropyHex); i++ {
-			tmp[i+diff] = entropyHex[i]
-		}
-		entropyHex = tmp
-	}
+	otherSize := byteSize - (byteSize % 4)
+	entropyHex = padHexToSize(entropyHex, otherSize)
 
 	validationHex := addChecksum(entropyHex)
-	if len(validationHex) != byteSize {
-		tmp2 := make([]byte, byteSize)
-		diff2 := byteSize - len(validationHex)
-		for i := 0; i < len(validationHex); i++ {
-			tmp2[i+diff2] = validationHex[i]
-		}
-		validationHex = tmp2
-	}
+	validationHex = padHexToSize(validationHex, byteSize)
 
 	if len(hex) != len(validationHex) {
 		panic("[]byte len mismatch - it shouldn't happen")
@@ -166,6 +151,18 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		}
 	}
 	return hex, nil
+}
+
+func padHexToSize(hex []byte, size int) []byte {
+	if len(hex) != size {
+		tmp2 := make([]byte, size)
+		diff2 := size - len(hex)
+		for i := 0; i < len(hex); i++ {
+			tmp2[i+diff2] = hex[i]
+		}
+		hex = tmp2
+	}
+	return hex
 }
 
 // NewSeedWithErrorChecking creates a hashed seed output given the mnemonic string and a password.
