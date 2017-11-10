@@ -119,7 +119,8 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 
 	entropyHex := entropy.Bytes()
 
-	byteSize := bitSize/8 + 1
+	// Add padding (an extra byte is for checksum)
+	byteSize := (bitSize-checksumSize)/8 + 1
 	if len(hex) != byteSize {
 		tmp := make([]byte, byteSize)
 		diff := byteSize - len(hex)
@@ -127,6 +128,17 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 			tmp[i+diff] = hex[i]
 		}
 		hex = tmp
+	}
+
+	// Add padding (no extra byte, entropy itself does not contain checksum)
+	entropyByteSize := (bitSize - checksumSize) / 8
+	if len(entropyHex) != entropyByteSize {
+		tmp := make([]byte, entropyByteSize)
+		diff := entropyByteSize - len(entropyHex)
+		for i := 0; i < len(entropyHex); i++ {
+			tmp[i+diff] = entropyHex[i]
+		}
+		entropyHex = tmp
 	}
 
 	validationHex := addChecksum(entropyHex)
