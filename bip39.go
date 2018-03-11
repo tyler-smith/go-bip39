@@ -244,11 +244,13 @@ func validateEntropyBitSize(bitSize int) error {
 // padByteSlice returns a byte slice of the given size with contents of the
 // given slice left padded and any empty spaces filled with 0's.
 func padByteSlice(slice []byte, length int) []byte {
-	if len(slice) >= length {
+	offset := length - len(slice)
+	if offset <= 0 {
 		return slice
 	}
-	newSlice := make([]byte, length-len(slice))
-	return append(newSlice, slice...)
+	newSlice := make([]byte, length)
+	copy(newSlice[offset:], slice)
+	return newSlice
 }
 
 // compareByteSlices returns true of the byte slices have equal contents and
