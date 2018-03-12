@@ -1,3 +1,7 @@
+// Package bip39 is the official Golang implementation of the BIP39 spec.
+//
+// The official BIP39 spec can be found at
+// https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 package bip39
 
 import (
