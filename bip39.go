@@ -83,12 +83,6 @@ func NewMnemonic(entropy []byte) (string, error) {
 // MnemonicToByteArray takes a mnemonic string and turns it into a byte array
 // suitable for creating another mnemonic.
 // An error is returned if the mnemonic is invalid.
-// FIXME
-// This does not work for all values in
-// the test vectors.  Namely
-// Vectors 0, 4, and 8.
-// This is not really important because BIP39 doesnt really define a conversion
-// from string to bytes.
 func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	if IsMnemonicValid(mnemonic) == false {
 		return nil, fmt.Errorf("Invalid mnemonic")
