@@ -6,16 +6,7 @@ import (
 	"strings"
 )
 
-// The wordlist to use
-var WordList = EnglishWordList
-
-var ReverseWordMap map[string]int = map[string]int{}
-
 func init() {
-	for i, v := range WordList {
-		ReverseWordMap[v] = i
-	}
-
 	// Ensure word list is correct
 	// $ wget https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt
 	// $ crc32 english.txt
@@ -26,7 +17,8 @@ func init() {
 	}
 }
 
-// Language-specific wordlists
+// EnglishWordList is a slice of mnemonic words taken from the bip39 specification
+// https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt
 var EnglishWordList = strings.Split(strings.TrimSpace(englishWordList), "\n")
 var englishWordList = `abandon
 ability

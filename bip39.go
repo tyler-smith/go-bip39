@@ -13,13 +13,25 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// Some bitwise operands for working with big.Ints
 var (
+	// Some bitwise operands for working with big.Ints
 	Last11BitsMask          = big.NewInt(2047)
 	RightShift11BitsDivider = big.NewInt(2048)
 	BigOne                  = big.NewInt(1)
 	BigTwo                  = big.NewInt(2)
+
+	// Wordlist sets the language used for the mnemonic
+	WordList       = EnglishWordList
+
+	// ReverseWordMap is a reverse lookup of Wordlist
+	ReverseWordMap = map[string]int{}
 )
+
+func init() {
+	for i, v := range WordList {
+		ReverseWordMap[v] = i
+	}
+}
 
 // NewEntropy will create random entropy bytes
 // so long as the requested size bitSize is an appropriate size.
