@@ -5,8 +5,10 @@ A golang implementation of the BIP0039 spec for mnemonic seeds
 
 ## Credits
 
-English wordlist and test vectors are from the standard Python BIP0039 implementation
-from the Trezor guys: [https://github.com/trezor/python-mnemonic](https://github.com/trezor/python-mnemonic)
+Wordlists are from the [bip39 spec](https://github.com/bitcoin/bips/tree/master/bip-0039).
+
+Test vectors are from the standard Python BIP0039 implementation from the
+Trezor guys: [https://github.com/trezor/python-mnemonic](https://github.com/trezor/python-mnemonic)
 
 ## Example
 
