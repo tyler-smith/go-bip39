@@ -254,6 +254,7 @@ func IsMnemonicValid(mnemonic string) bool {
 	return true
 }
 
+// contains checks if a given string is in a given slice of strings.
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
