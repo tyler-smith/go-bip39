@@ -12,7 +12,7 @@ type Vector struct {
 	seed     string
 }
 
-func TestBip39(t *testing.T) {
+func TestNewMnemonic(t *testing.T) {
 	for _, vector := range testVectors() {
 		entropy, err := hex.DecodeString(vector.entropy)
 		assertNil(t, err)
@@ -21,12 +21,23 @@ func TestBip39(t *testing.T) {
 		assertNil(t, err)
 		assertEqualString(t, vector.mnemonic, mnemonic)
 
-		// expectedSeed, err := hex.DecodeString(vector.seed)
 		_, err = NewSeedWithErrorChecking(mnemonic, "TREZOR")
 		assertNil(t, err)
 
 		seed := NewSeed(mnemonic, "TREZOR")
 		assertEqualString(t, vector.seed, hex.EncodeToString(seed))
+	}
+}
+
+func TestNewMnemonicInvalidEntropy(t *testing.T) {
+	_, err := NewMnemonic([]byte{})
+	assertNotNil(t, err)
+}
+
+func TestNewSeedWithErrorCheckingInvalidMnemonics(t *testing.T) {
+	for _, vector := range badMnemonicSentences() {
+		_, err := NewSeedWithErrorChecking(vector.mnemonic, "TREZOR")
+		assertNotNil(t, err)
 	}
 }
 
@@ -86,10 +97,6 @@ func TestNewEntropy(t *testing.T) {
 			assertNotNil(t, err)
 		}
 	}
-}
-
-func TestMnemonicToByteArray(t *testing.T) {
-
 }
 
 func TestMnemonicToByteArrayForDifferentArrayLangths(t *testing.T) {
