@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-type Vector struct {
+type vector struct {
 	entropy  string
 	mnemonic string
 	seed     string
@@ -129,6 +129,49 @@ func TestMnemonicToByteArrayForDifferentArrayLangths(t *testing.T) {
 	}
 }
 
+func assertNil(t *testing.T, object interface{}) {
+	if object != nil {
+		t.Errorf("Expected nil, got %v", object)
+	}
+}
+
+func assertNotNil(t *testing.T, object interface{}) {
+	if object == nil {
+		t.Error("Expected not nil")
+	}
+}
+
+func assertTrue(t *testing.T, a bool) {
+	if !a {
+		t.Error("Expected true, got false")
+	}
+}
+
+func assertFalse(t *testing.T, a bool) {
+	if a {
+		t.Error("Expected false, got true")
+	}
+}
+
+func assertEqualString(t *testing.T, a, b string) {
+	if a != b {
+		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
+	}
+}
+
+func assertEqualByteSlices(t *testing.T, a, b []byte) {
+	if len(a) != len(b) {
+		t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+		return
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+			return
+		}
+	}
+}
+
 func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 	ms := []string{
 		"00000000000000000000000000000000",
@@ -224,58 +267,28 @@ func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 	}
 }
 
-func badMnemonicSentences() []Vector {
-	return []Vector{
-		{
-			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-		},
-		{
-			mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow yellow",
-		},
-		{
-			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice caged above",
-		},
-		{
-			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo, wrong",
-		},
-		{
-			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-		},
-		{
-			mnemonic: "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will will will",
-		},
-		{
-			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always.",
-		},
-		{
-			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo why",
-		},
-		{
-			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art art",
-		},
-		{
-			mnemonic: "legal winner thank year wave sausage worth useful legal winner thanks year wave worth useful legal winner thank year wave sausage worth title",
-		},
-		{
-			mnemonic: "letter advice cage absurd amount doctor acoustic avoid letters advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless",
-		},
-		{
-			mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo voted",
-		},
-		{
-			mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge",
-		},
-		{
-			mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap",
-		},
-		{
-			mnemonic: "dignity pass list indicate nasty",
-		},
+func badMnemonicSentences() []vector {
+	return []vector{
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow yellow"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice caged above"},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo, wrong"},
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will will will"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always."},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo why"},
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art art"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thanks year wave worth useful legal winner thank year wave sausage worth title"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letters advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless"},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo voted"},
+		{mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge"},
+		{mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap"},
+		{mnemonic: "dignity pass list indicate nasty"},
 	}
 }
 
-func testVectors() []Vector {
-	return []Vector{
+func testVectors() []vector {
+	return []vector{
 		{
 			entropy:  "00000000000000000000000000000000",
 			mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
@@ -396,48 +409,5 @@ func testVectors() []Vector {
 			mnemonic: "beyond stage sleep clip because twist token leaf atom beauty genius food business side grid unable middle armed observe pair crouch tonight away coconut",
 			seed:     "b15509eaa2d09d3efd3e006ef42151b30367dc6e3aa5e44caba3fe4d3e352e65101fbdb86a96776b91946ff06f8eac594dc6ee1d3e82a42dfe1b40fef6bcc3fd",
 		},
-	}
-}
-
-func assertNil(t *testing.T, object interface{}) {
-	if object != nil {
-		t.Errorf("Expected nil, got %v", object)
-	}
-}
-
-func assertNotNil(t *testing.T, object interface{}) {
-	if object == nil {
-		t.Error("Expected not nil")
-	}
-}
-
-func assertTrue(t *testing.T, a bool) {
-	if !a {
-		t.Error("Expected true, got false")
-	}
-}
-
-func assertFalse(t *testing.T, a bool) {
-	if a {
-		t.Error("Expected false, got true")
-	}
-}
-
-func assertEqualString(t *testing.T, a, b string) {
-	if a != b {
-		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
-	}
-}
-
-func assertEqualByteSlices(t *testing.T, a, b []byte) {
-	if len(a) != len(b) {
-		t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
-		return
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
-			return
-		}
 	}
 }
