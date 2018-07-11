@@ -98,6 +98,12 @@ func TestNewEntropy(t *testing.T) {
 		}
 	}
 }
+func TestPadByteSlice(t *testing.T) {
+	assertEqualByteSlices(t, []byte{0}, padByteSlice([]byte{}, 1))
+	assertEqualByteSlices(t, []byte{0, 1}, padByteSlice([]byte{1}, 2))
+	assertEqualByteSlices(t, []byte{1, 1}, padByteSlice([]byte{1, 1}, 2))
+	assertEqualByteSlices(t, []byte{1, 1, 1}, padByteSlice([]byte{1, 1, 1}, 2))
+}
 
 func TestMnemonicToByteArrayForDifferentArrayLangths(t *testing.T) {
 	max := 1000
@@ -405,12 +411,6 @@ func assertNotNil(t *testing.T, object interface{}) {
 	}
 }
 
-func assertEqualString(t *testing.T, a, b string) {
-	if a != b {
-		t.Errorf("Strings not equal, got `%s` and `%s`", a, b)
-	}
-}
-
 func assertTrue(t *testing.T, a bool) {
 	if !a {
 		t.Error("Expected true, got false")
@@ -420,5 +420,24 @@ func assertTrue(t *testing.T, a bool) {
 func assertFalse(t *testing.T, a bool) {
 	if a {
 		t.Error("Expected false, got true")
+	}
+}
+
+func assertEqualString(t *testing.T, a, b string) {
+	if a != b {
+		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
+	}
+}
+
+func assertEqualByteSlices(t *testing.T, a, b []byte) {
+	if len(a) != len(b) {
+		t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+		return
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+			return
+		}
 	}
 }

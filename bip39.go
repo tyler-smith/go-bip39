@@ -137,10 +137,10 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	}
 
 	otherSize := byteSize - (byteSize % 4)
-	entropyHex = padHexToSize(entropyHex, otherSize)
+	entropyHex = padByteSlice(entropyHex, otherSize)
 
 	validationHex := addChecksum(entropyHex)
-	validationHex = padHexToSize(validationHex, byteSize)
+	validationHex = padByteSlice(validationHex, byteSize)
 
 	if len(hex) != len(validationHex) {
 		panic("[]byte len mismatch - it shouldn't happen")
@@ -151,18 +151,6 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		}
 	}
 	return hex, nil
-}
-
-func padHexToSize(hex []byte, size int) []byte {
-	if len(hex) != size {
-		tmp2 := make([]byte, size)
-		diff2 := size - len(hex)
-		for i := 0; i < len(hex); i++ {
-			tmp2[i+diff2] = hex[i]
-		}
-		hex = tmp2
-	}
-	return hex
 }
 
 // NewSeedWithErrorChecking creates a hashed seed output given the mnemonic string and a password.
@@ -179,54 +167,6 @@ func NewSeedWithErrorChecking(mnemonic string, password string) ([]byte, error) 
 // No checking is performed to validate that the string provided is a valid mnemonic.
 func NewSeed(mnemonic string, password string) []byte {
 	return pbkdf2.Key([]byte(mnemonic), []byte("mnemonic"+password), 2048, 64, sha512.New)
-}
-
-// Appends to data the first (len(data) / 32)bits of the result of sha256(data)
-// Currently only supports data up to 32 bytes
-func addChecksum(data []byte) []byte {
-	// Get first byte of sha256
-	hasher := sha256.New()
-	hasher.Write(data)
-	hash := hasher.Sum(nil)
-	firstChecksumByte := hash[0]
-
-	// len() is in bytes so we divide by 4
-	checksumBitLength := uint(len(data) / 4)
-
-	// For each bit of check sum we want we shift the data one the left
-	// and then set the (new) right most bit equal to checksum bit at that index
-	// staring from the left
-	dataBigInt := new(big.Int).SetBytes(data)
-	for i := uint(0); i < checksumBitLength; i++ {
-		// Bitshift 1 left
-		dataBigInt.Mul(dataBigInt, BigTwo)
-
-		// Set rightmost bit if leftmost checksum bit is set
-		if uint8(firstChecksumByte&(1<<(7-i))) > 0 {
-			dataBigInt.Or(dataBigInt, BigOne)
-		}
-	}
-
-	return dataBigInt.Bytes()
-}
-
-func padByteSlice(slice []byte, length int) []byte {
-	newSlice := make([]byte, length-len(slice))
-	return append(newSlice, slice...)
-}
-
-func validateEntropyBitSize(bitSize int) error {
-	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
-		return errors.New("Entropy length must be [128, 256] and a multiple of 32")
-	}
-	return nil
-}
-
-func validateEntropyWithChecksumBitSize(bitSize int) error {
-	if (bitSize != 128+4) && (bitSize != 160+5) && (bitSize != 192+6) && (bitSize != 224+7) && (bitSize != 256+8) {
-		return fmt.Errorf("Wrong entropy + checksum size - expected %v, got %v", int((bitSize-bitSize%32)+(bitSize-bitSize%32)/32), bitSize)
-	}
-	return nil
 }
 
 // IsMnemonicValid attempts to verify that the provided mnemonic is valid.
@@ -252,6 +192,63 @@ func IsMnemonicValid(mnemonic string) bool {
 	}
 
 	return true
+}
+
+// Appends to data the first (len(data) / 32)bits of the result of sha256(data)
+// Currently only supports data up to 32 bytes
+func addChecksum(data []byte) []byte {
+	// Get first byte of sha256
+	hasher := sha256.New()
+	hasher.Write(data)
+	hash := hasher.Sum(nil)
+	firstChecksumByte := hash[0]
+
+	// len() is in bytes so we divide by 4
+	checksumBitLength := uint(len(data) / 4)
+
+	// For each bit of check sum we want we shift the data one the left
+	// and then set the (new) right most bit equal to checksum bit at that index
+	// staring from the left
+	dataBigInt := new(big.Int).SetBytes(data)
+	for i := uint(0); i < checksumBitLength; i++ {
+		// Bitshift 1 left
+		dataBigInt.Mul(dataBigInt, bigTwo)
+
+		// Set rightmost bit if leftmost checksum bit is set
+		if uint8(firstChecksumByte&(1<<(7-i))) > 0 {
+			dataBigInt.Or(dataBigInt, bigOne)
+		}
+	}
+
+	return dataBigInt.Bytes()
+}
+
+// validateEntropyBitSize ensures that entropy is the correct size for being a
+// mnemonic.
+func validateEntropyBitSize(bitSize int) error {
+	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
+		return errors.New("Entropy length must be [128, 256] and a multiple of 32")
+	}
+	return nil
+}
+
+// validateEntropyWithChecksumBitSize ensures that the given number of bits is a
+// valid length for seed entropy with an attached checksum.
+func validateEntropyWithChecksumBitSize(bitSize int) error {
+	if (bitSize != 128+4) && (bitSize != 160+5) && (bitSize != 192+6) && (bitSize != 224+7) && (bitSize != 256+8) {
+		return fmt.Errorf("Wrong entropy + checksum size - expected %v, got %v", int((bitSize-bitSize%32)+(bitSize-bitSize%32)/32), bitSize)
+	}
+	return nil
+}
+
+// padByteSlice returns a byte slice of the given size with contents of the
+// given slice left padded and any empty spaces filled with 0's.
+func padByteSlice(slice []byte, length int) []byte {
+	if len(slice) >= length {
+		return slice
+	}
+	newSlice := make([]byte, length-len(slice))
+	return append(newSlice, slice...)
 }
 
 // contains checks if a given string is in a given slice of strings.
