@@ -15,12 +15,12 @@ import (
 
 var (
 	// Some bitwise operands for working with big.Ints
-	Last11BitsMask          = big.NewInt(2047)
-	RightShift11BitsDivider = big.NewInt(2048)
-	BigOne                  = big.NewInt(1)
-	BigTwo                  = big.NewInt(2)
+	last11BitsMask          = big.NewInt(2047)
+	rightShift11BitsDivider = big.NewInt(2048)
+	bigOne                  = big.NewInt(1)
+	bigTwo                  = big.NewInt(2)
 
-	// Wordlist sets the language used for the mnemonic
+	// WordList sets the language used for the mnemonic
 	WordList = EnglishWordList
 
 	// ReverseWordMap is a reverse lookup of Wordlist
@@ -79,8 +79,8 @@ func NewMnemonic(entropy []byte) (string, error) {
 
 	for i := sentenceLength - 1; i >= 0; i-- {
 		// Get 11 right most bits and bitshift 11 to the right for next time
-		word.And(entropyInt, Last11BitsMask)
-		entropyInt.Div(entropyInt, RightShift11BitsDivider)
+		word.And(entropyInt, last11BitsMask)
+		entropyInt.Div(entropyInt, rightShift11BitsDivider)
 
 		// Get the bytes representing the 11 bits as a 2 byte slice
 		wordBytes := padByteSlice(word.Bytes(), 2)
