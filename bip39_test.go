@@ -23,10 +23,11 @@ func TestBip39(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, vector.mnemonic, mnemonic)
 
-		seed, err := NewSeedWithErrorChecking(mnemonic, "TREZOR")
-		assert.NoError(t, err)
-		assert.Equal(t, vector.seed, hex.EncodeToString(seed))
-		seed = NewSeed(mnemonic, "TREZOR")
+		// expectedSeed, err := hex.DecodeString(vector.seed)
+		_, err = NewSeedWithErrorChecking(mnemonic, "TREZOR")
+		assert.Nil(t, err)
+
+		seed := NewSeed(mnemonic, "TREZOR")
 		assert.Equal(t, vector.seed, hex.EncodeToString(seed))
 	}
 }
