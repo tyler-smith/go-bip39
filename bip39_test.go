@@ -4,8 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type Vector struct {
@@ -17,35 +15,35 @@ type Vector struct {
 func TestBip39(t *testing.T) {
 	for _, vector := range testVectors() {
 		entropy, err := hex.DecodeString(vector.entropy)
-		assert.NoError(t, err)
+		assertNil(t, err)
 
 		mnemonic, err := NewMnemonic(entropy)
-		assert.NoError(t, err)
-		assert.Equal(t, vector.mnemonic, mnemonic)
+		assertNil(t, err)
+		assertEqualString(t, vector.mnemonic, mnemonic)
 
 		// expectedSeed, err := hex.DecodeString(vector.seed)
 		_, err = NewSeedWithErrorChecking(mnemonic, "TREZOR")
-		assert.Nil(t, err)
+		assertNil(t, err)
 
 		seed := NewSeed(mnemonic, "TREZOR")
-		assert.Equal(t, vector.seed, hex.EncodeToString(seed))
+		assertEqualString(t, vector.seed, hex.EncodeToString(seed))
 	}
 }
 
 func TestIsMnemonicValid(t *testing.T) {
 	for _, vector := range badMnemonicSentences() {
-		assert.Equal(t, IsMnemonicValid(vector.mnemonic), false)
+		assertFalse(t, IsMnemonicValid(vector.mnemonic))
 	}
 
 	for _, vector := range testVectors() {
-		assert.Equal(t, IsMnemonicValid(vector.mnemonic), true)
+		assertTrue(t, IsMnemonicValid(vector.mnemonic))
 	}
 }
 
 func TestInvalidMnemonicFails(t *testing.T) {
 	for _, vector := range badMnemonicSentences() {
 		_, err := MnemonicToByteArray(vector.mnemonic)
-		assert.NotNil(t, err)
+		assertNotNil(t, err)
 	}
 }
 
@@ -55,23 +53,23 @@ func TestValidateEntropyWithChecksumBitSize(t *testing.T) {
 		err := validateEntropyWithChecksumBitSize(i)
 		switch i {
 		case 132: // 128 + 4
-			assert.Nil(t, err)
+			assertNil(t, err)
 		case 165: // 160 + 5
-			assert.Nil(t, err)
+			assertNil(t, err)
 		case 198: // 192 + 6
-			assert.Nil(t, err)
+			assertNil(t, err)
 		case 231: // 224 + 7
-			assert.Nil(t, err)
+			assertNil(t, err)
 		case 264: // 256 + 8
-			assert.Nil(t, err)
+			assertNil(t, err)
 		default:
-			assert.NotNil(t, err)
+			assertNotNil(t, err)
 		}
 	}
 	// Bad Tests
 	for i := 4; i <= 8; i++ {
 		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
-		assert.NotNil(t, err)
+		assertNotNil(t, err)
 	}
 }
 
@@ -79,13 +77,13 @@ func TestNewEntropy(t *testing.T) {
 	// Good tests.
 	for i := 128; i <= 256; i += 32 {
 		_, err := NewEntropy(i)
-		assert.Nil(t, err)
+		assertNil(t, err)
 	}
 	// Bad Values
 	for i := 0; i <= 256; i++ {
 		if i%8 != 0 {
 			_, err := NewEntropy(i)
-			assert.NotNil(t, err)
+			assertNotNil(t, err)
 		}
 	}
 }
@@ -385,5 +383,35 @@ func testVectors() []Vector {
 			mnemonic: "beyond stage sleep clip because twist token leaf atom beauty genius food business side grid unable middle armed observe pair crouch tonight away coconut",
 			seed:     "b15509eaa2d09d3efd3e006ef42151b30367dc6e3aa5e44caba3fe4d3e352e65101fbdb86a96776b91946ff06f8eac594dc6ee1d3e82a42dfe1b40fef6bcc3fd",
 		},
+	}
+}
+
+func assertNil(t *testing.T, object interface{}) {
+	if object != nil {
+		t.Errorf("Expected nil, got %v", object)
+	}
+}
+
+func assertNotNil(t *testing.T, object interface{}) {
+	if object == nil {
+		t.Error("Expected not nil")
+	}
+}
+
+func assertEqualString(t *testing.T, a, b string) {
+	if a != b {
+		t.Errorf("Strings not equal, got `%s` and `%s`", a, b)
+	}
+}
+
+func assertTrue(t *testing.T, a bool) {
+	if !a {
+		t.Error("Expected true, got false")
+	}
+}
+
+func assertFalse(t *testing.T, a bool) {
+	if a {
+		t.Error("Expected false, got true")
 	}
 }
