@@ -2,14 +2,6 @@
 
 A golang implementation of the BIP0039 spec for mnemonic seeds
 
-
-## Credits
-
-Wordlists are from the [bip39 spec](https://github.com/bitcoin/bips/tree/master/bip-0039).
-
-Test vectors are from the standard Python BIP0039 implementation from the
-Trezor guys: [https://github.com/trezor/python-mnemonic](https://github.com/trezor/python-mnemonic)
-
 ## Example
 
 ```go
@@ -38,3 +30,10 @@ func main(){
   fmt.Println("Master public key: ", publicKey)
 }
 ```
+
+## Credits
+
+Wordlists are from the [bip39 spec](https://github.com/bitcoin/bips/tree/master/bip-0039).
+
+Test vectors are from the standard Python BIP0039 implementation from the
+Trezor team: [https://github.com/trezor/python-mnemonic](https://github.com/trezor/python-mnemonic)
