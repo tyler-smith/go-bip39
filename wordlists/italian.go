@@ -1,4 +1,4 @@
-package bip39
+package wordlists
 
 import (
 	"fmt"
@@ -11,16 +11,16 @@ func init() {
 	// $ wget https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/italian.txt
 	// $ crc32 italian.txt
 	// 2fc7d07e
-	checksum := crc32.ChecksumIEEE([]byte(italianWordList))
+	checksum := crc32.ChecksumIEEE([]byte(italian))
 	if fmt.Sprintf("%x", checksum) != "2fc7d07e" {
-		panic("italianWordList checksum invalid")
+		panic("italian checksum invalid")
 	}
 }
 
-// ItalianWordList is a slice of mnemonic words taken from the bip39 specification
+// Italian is a slice of mnemonic words taken from the bip39 specification
 // https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/italian.txt
-var ItalianWordList = strings.Split(strings.TrimSpace(italianWordList), "\n")
-var italianWordList = `abaco
+var Italian = strings.Split(strings.TrimSpace(italian), "\n")
+var italian = `abaco
 abbaglio
 abbinato
 abete

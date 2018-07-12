@@ -1,4 +1,4 @@
-package bip39
+package wordlists
 
 import (
 	"fmt"
@@ -11,16 +11,16 @@ func init() {
 	// $ wget https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/spanish.txt
 	// $ crc32 spanish.txt
 	// 266e4f3d
-	checksum := crc32.ChecksumIEEE([]byte(spanishWordList))
+	checksum := crc32.ChecksumIEEE([]byte(spanish))
 	if fmt.Sprintf("%x", checksum) != "266e4f3d" {
-		panic("spanishWordList checksum invalid")
+		panic("spanish checksum invalid")
 	}
 }
 
-// SpanishWordList is a slice of mnemonic words taken from the bip39 specification
+// Spanish is a slice of mnemonic words taken from the bip39 specification
 // https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/spanish.txt
-var SpanishWordList = strings.Split(strings.TrimSpace(spanishWordList), "\n")
-var spanishWordList = `ábaco
+var Spanish = strings.Split(strings.TrimSpace(spanish), "\n")
+var spanish = `ábaco
 abdomen
 abeja
 abierto

@@ -1,4 +1,4 @@
-package bip39
+package wordlists
 
 import (
 	"fmt"
@@ -11,16 +11,16 @@ func init() {
 	// $ wget https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/korean.txt
 	// $ crc32 korean.txt
 	// 4ef461eb
-	checksum := crc32.ChecksumIEEE([]byte(koreanWordList))
+	checksum := crc32.ChecksumIEEE([]byte(korean))
 	if fmt.Sprintf("%x", checksum) != "4ef461eb" {
-		panic("koreanWordList checksum invalid")
+		panic("korean checksum invalid")
 	}
 }
 
-// KoreanWordList is a slice of mnemonic words taken from the bip39 specification
+// Korean is a slice of mnemonic words taken from the bip39 specification
 // https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/korean.txt
-var KoreanWordList = strings.Split(strings.TrimSpace(koreanWordList), "\n")
-var koreanWordList = `가격
+var Korean = strings.Split(strings.TrimSpace(korean), "\n")
+var korean = `가격
 가끔
 가난
 가능
