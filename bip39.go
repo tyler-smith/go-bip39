@@ -19,13 +19,24 @@ var (
 	bigTwo                  = big.NewInt(2)
 
 	// WordList sets the language used for the mnemonic
-	WordList = EnglishWordList
+	WordList []string
 
 	// ReverseWordMap is a reverse lookup of Wordlist
-	ReverseWordMap = map[string]int{}
+	ReverseWordMap map[string]int
+
+	// DefaultWordList specifies the wordlist to use upon initialization
+	DefaultWordList = EnglishWordList
 )
 
 func init() {
+	SetWordList(DefaultWordList)
+}
+
+// SetWordList sets the list of words to use for mnemonics. Currently the list
+// that is set is used package-wide.
+func SetWordList(wordList []string) {
+	WordList = wordList
+	ReverseWordMap = map[string]int{}
 	for i, v := range WordList {
 		ReverseWordMap[v] = i
 	}
