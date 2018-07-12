@@ -3,6 +3,7 @@ package bip39
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"strings"
 	"testing"
 )
 
@@ -77,10 +78,17 @@ func TestValidateEntropyWithChecksumBitSize(t *testing.T) {
 			assertNotNil(t, err)
 		}
 	}
+
 	// Bad Tests
 	for i := 4; i <= 8; i++ {
 		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
 		assertNotNil(t, err)
+		assertTrue(t, strings.HasPrefix(err.Error(), "Incorrect entropy"))
+	}
+	for i := 0; i <= 128; i++ {
+		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
+		assertNotNil(t, err)
+		assertTrue(t, strings.HasPrefix(err.Error(), "Incorrect entropy"))
 	}
 }
 

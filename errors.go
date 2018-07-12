@@ -30,5 +30,5 @@ type EntropySizeErr struct {
 
 // Error returns the error string for an `EntropySizeErr`.
 func (err EntropySizeErr) Error() string {
-	return fmt.Sprintf("Wrong entropy + checksum size - expected %d, got %d", err.expected, err.actual)
+	return fmt.Sprintf("Incorrect entropy + checksum size - expected %d, got %d", err.expected, err.actual)
 }
