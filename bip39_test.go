@@ -56,6 +56,10 @@ func TestInvalidMnemonicFails(t *testing.T) {
 		_, err := MnemonicToByteArray(vector.mnemonic)
 		assertNotNil(t, err)
 	}
+
+	_, err := MnemonicToByteArray("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon yellow")
+	assertNotNil(t, err)
+	assertEqual(t, err, ErrChecksumIncorrect)
 }
 
 func TestNewEntropy(t *testing.T) {
@@ -132,6 +136,12 @@ func assertTrue(t *testing.T, a bool) {
 func assertFalse(t *testing.T, a bool) {
 	if a {
 		t.Error("Expected false, got true")
+	}
+}
+
+func assertEqual(t *testing.T, a, b interface{}) {
+	if a != b {
+		t.Errorf("Objects not equal, expected `%s` and got `%s`", a, b)
 	}
 }
 
