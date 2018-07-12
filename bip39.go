@@ -94,61 +94,53 @@ func NewMnemonic(entropy []byte) (string, error) {
 // suitable for creating another mnemonic.
 // An error is returned if the mnemonic is invalid.
 func MnemonicToByteArray(mnemonic string) ([]byte, error) {
-	if IsMnemonicValid(mnemonic) == false {
-		return nil, ErrInvalideMnemonic
-	}
-	mnemonicSlice := strings.Split(mnemonic, " ")
+	var (
+		mnemonicSlice    = strings.Split(mnemonic, " ")
+		entropyBitSize   = len(mnemonicSlice) * 11
+		checksumBitSize  = entropyBitSize % 32
+		fullByteSize     = (entropyBitSize-checksumBitSize)/8 + 1
+		checksumByteSize = fullByteSize - (fullByteSize % 4)
+	)
 
-	bitSize := len(mnemonicSlice) * 11
-	err := validateEntropyWithChecksumBitSize(bitSize)
+	// Pre validate
+	if !IsMnemonicValid(mnemonic) {
+		return nil, ErrInvalidMnemonic
+	}
+
+	err := validateEntropyWithChecksumBitSize(entropyBitSize)
 	if err != nil {
 		return nil, err
 	}
-	checksumSize := bitSize % 32
 
-	b := big.NewInt(0)
+	// Convert word indices to a `big.Int` representing the entropy
+	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
 	for _, v := range mnemonicSlice {
-		index, found := ReverseWordMap[v]
-		if found == false {
+		index, ok := ReverseWordMap[v]
+		if !ok {
 			return nil, UnknownWordErr{Word: v}
 		}
 		add := big.NewInt(int64(index))
-		b = b.Mul(b, modulo)
-		b = b.Add(b, add)
-	}
-	hex := b.Bytes()
-	checksumModulo := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(int64(checksumSize)), nil)
-	entropy, _ := big.NewInt(0).DivMod(b, checksumModulo, big.NewInt(0))
-
-	entropyHex := entropy.Bytes()
-
-	// Add padding (an extra byte is for checksum)
-	byteSize := (bitSize-checksumSize)/8 + 1
-	if len(hex) != byteSize {
-		tmp := make([]byte, byteSize)
-		diff := byteSize - len(hex)
-		for i := 0; i < len(hex); i++ {
-			tmp[i+diff] = hex[i]
-		}
-		hex = tmp
+		checksummedEntropy.Mul(checksummedEntropy, modulo)
+		checksummedEntropy.Add(checksummedEntropy, add)
 	}
 
-	otherSize := byteSize - (byteSize % 4)
-	entropyHex = padByteSlice(entropyHex, otherSize)
+	// Calculate the unchecksummed entropy so we can validate that the checksum is
+	// correct
+	checksumModulo := big.NewInt(0).Exp(bigTwo, big.NewInt(int64(checksumBitSize)), nil)
+	rawEntropy := big.NewInt(0).Div(checksummedEntropy, checksumModulo)
 
-	validationHex := addChecksum(entropyHex)
-	validationHex = padByteSlice(validationHex, byteSize)
+	// Convert `big.Int`s to byte padded byte slices
+	rawEntropyBytes := padByteSlice(rawEntropy.Bytes(), checksumByteSize)
+	checksummedEntropyBytes := padByteSlice(checksummedEntropy.Bytes(), fullByteSize)
 
-	if len(hex) != len(validationHex) {
-		return nil, ErrValidatedSeedLengthMismatch
+	// Validate that the checksum is correct
+	newChecksummedEntropyBytes := padByteSlice(addChecksum(rawEntropyBytes), fullByteSize)
+	if !compareByteSlices(checksummedEntropyBytes, newChecksummedEntropyBytes) {
+		return nil, ErrChecksumIncorrect
 	}
-	for i := range validationHex {
-		if hex[i] != validationHex[i] {
-			return nil, ChecksumErr{i}
-		}
-	}
-	return hex, nil
+
+	return checksummedEntropyBytes, nil
 }
 
 // NewSeedWithErrorChecking creates a hashed seed output given the mnemonic string and a password.
@@ -257,4 +249,18 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// compareByteSlices returns true of the byte slices have equal contents and
+// returns false otherwise.
+func compareByteSlices(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

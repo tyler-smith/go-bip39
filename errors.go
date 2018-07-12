@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	// ErrInvalideMnemonic is returned when trying to use a malformed mnemonic.
-	ErrInvalideMnemonic = errors.New("Invalid menomic")
+	// ErrInvalidMnemonic is returned when trying to use a malformed mnemonic.
+	ErrInvalidMnemonic = errors.New("Invalid menomic")
 
 	// ErrEntropyLengthInvalid is returned when trying to use an entropy set with
 	// an invalid size.
@@ -17,6 +17,9 @@ var (
 	// same size as the given seed. This should never happen is present only as a
 	// sanity assertion.
 	ErrValidatedSeedLengthMismatch = errors.New("Seed length does not match validated seed length")
+
+	// ErrChecksumIncorrect is returned when entropy has the incorrect checksum.
+	ErrChecksumIncorrect = errors.New("Checksum incorrect")
 )
 
 // UnknownWordErr is returned when a mnemonic contains a word that isn't in the
@@ -28,16 +31,6 @@ type UnknownWordErr struct {
 // Error returns the error string for an `UnknownWordErr`.
 func (err UnknownWordErr) Error() string {
 	return fmt.Sprintf("Word `%v` not found in reverse map", err)
-}
-
-// ChecksumErr is returned when a mnemonic contains an invalid checksum.
-type ChecksumErr struct {
-	byteIndex int
-}
-
-// Error returns the error string for an `ChecksumErr`.
-func (err ChecksumErr) Error() string {
-	return fmt.Sprintf("Mnemonic checksum error, decoding byte index %d", err.byteIndex)
 }
 
 // EntropySizeErr is returned when an entropy slice has an incorrect size.
