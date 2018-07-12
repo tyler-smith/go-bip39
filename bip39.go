@@ -19,14 +19,11 @@ var (
 	bigOne                  = big.NewInt(1)
 	bigTwo                  = big.NewInt(2)
 
-	// WordList sets the language used for the mnemonic
-	WordList []string
+	// wordList is the set of words to use
+	wordList []string
 
-	// ReverseWordMap is a reverse lookup of Wordlist
-	ReverseWordMap map[string]int
-
-	// DefaultWordList specifies the wordlist to use upon initialization
-	DefaultWordList = EnglishWordList
+	// wordMap is a reverse lookup map for wordList
+	wordMap map[string]int
 )
 
 var (
@@ -47,16 +44,16 @@ var (
 )
 
 func init() {
-	SetWordList(DefaultWordList)
+	SetWordList(EnglishWordList)
 }
 
 // SetWordList sets the list of words to use for mnemonics. Currently the list
 // that is set is used package-wide.
-func SetWordList(wordList []string) {
-	WordList = wordList
-	ReverseWordMap = map[string]int{}
-	for i, v := range WordList {
-		ReverseWordMap[v] = i
+func SetWordList(list []string) {
+	wordList = list
+	wordMap = map[string]int{}
+	for i, v := range wordList {
+		wordMap[v] = i
 	}
 }
 
@@ -113,7 +110,7 @@ func NewMnemonic(entropy []byte) (string, error) {
 		wordBytes := padByteSlice(word.Bytes(), 2)
 
 		// Convert bytes to an index and add that word to the list
-		words[i] = WordList[binary.BigEndian.Uint16(wordBytes)]
+		words[i] = wordList[binary.BigEndian.Uint16(wordBytes)]
 	}
 
 	return strings.Join(words, " "), nil
@@ -141,7 +138,7 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
 	for _, v := range mnemonicSlice {
-		index := big.NewInt(int64(ReverseWordMap[v]))
+		index := big.NewInt(int64(wordMap[v]))
 		checksummedEntropy.Mul(checksummedEntropy, modulo)
 		checksummedEntropy.Add(checksummedEntropy, index)
 	}
@@ -197,7 +194,7 @@ func IsMnemonicValid(mnemonic string) bool {
 
 	// Check if all words belong in the wordlist
 	for _, word := range words {
-		if _, ok := ReverseWordMap[word]; !ok {
+		if _, ok := wordMap[word]; !ok {
 			return false
 		}
 	}
