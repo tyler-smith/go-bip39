@@ -2,7 +2,6 @@ package bip39
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -21,14 +20,3 @@ var (
 	// ErrChecksumIncorrect is returned when entropy has the incorrect checksum.
 	ErrChecksumIncorrect = errors.New("Checksum incorrect")
 )
-
-// EntropySizeErr is returned when an entropy slice has an incorrect size.
-type EntropySizeErr struct {
-	expected int
-	actual   int
-}
-
-// Error returns the error string for an `EntropySizeErr`.
-func (err EntropySizeErr) Error() string {
-	return fmt.Sprintf("Incorrect entropy + checksum size - expected %d, got %d", err.expected, err.actual)
-}

@@ -3,7 +3,6 @@ package bip39
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"strings"
 	"testing"
 )
 
@@ -56,39 +55,6 @@ func TestInvalidMnemonicFails(t *testing.T) {
 	for _, vector := range badMnemonicSentences() {
 		_, err := MnemonicToByteArray(vector.mnemonic)
 		assertNotNil(t, err)
-	}
-}
-
-func TestValidateEntropyWithChecksumBitSize(t *testing.T) {
-	// Good tests.
-	for i := 1; i <= (12*32 + 12); i++ {
-		err := validateEntropyWithChecksumBitSize(i)
-		switch i {
-		case 132: // 128 + 4
-			assertNil(t, err)
-		case 165: // 160 + 5
-			assertNil(t, err)
-		case 198: // 192 + 6
-			assertNil(t, err)
-		case 231: // 224 + 7
-			assertNil(t, err)
-		case 264: // 256 + 8
-			assertNil(t, err)
-		default:
-			assertNotNil(t, err)
-		}
-	}
-
-	// Bad Tests
-	for i := 4; i <= 8; i++ {
-		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
-		assertNotNil(t, err)
-		assertTrue(t, strings.HasPrefix(err.Error(), "Incorrect entropy"))
-	}
-	for i := 0; i <= 128; i++ {
-		err := validateEntropyWithChecksumBitSize((i * 32) + (i + 1))
-		assertNotNil(t, err)
-		assertTrue(t, strings.HasPrefix(err.Error(), "Incorrect entropy"))
 	}
 }
 

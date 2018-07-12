@@ -119,11 +119,6 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		return nil, ErrInvalidMnemonic
 	}
 
-	err := validateEntropyWithChecksumBitSize(entropyBitSize)
-	if err != nil {
-		return nil, err
-	}
-
 	// Convert word indices to a `big.Int` representing the entropy
 	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
@@ -175,10 +170,10 @@ func IsMnemonicValid(mnemonic string) bool {
 	words := strings.Fields(mnemonic)
 
 	// Get word count
-	numOfWords := len(words)
+	wordCount := len(words)
 
 	// The number of words should be 12, 15, 18, 21 or 24
-	if numOfWords%3 != 0 || numOfWords < 12 || numOfWords > 24 {
+	if wordCount%3 != 0 || wordCount < 12 || wordCount > 24 {
 		return false
 	}
 
@@ -226,15 +221,6 @@ func addChecksum(data []byte) []byte {
 func validateEntropyBitSize(bitSize int) error {
 	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
 		return ErrEntropyLengthInvalid
-	}
-	return nil
-}
-
-// validateEntropyWithChecksumBitSize ensures that the given number of bits is a
-// valid length for seed entropy with an attached checksum.
-func validateEntropyWithChecksumBitSize(bitSize int) error {
-	if (bitSize != 128+4) && (bitSize != 160+5) && (bitSize != 192+6) && (bitSize != 224+7) && (bitSize != 256+8) {
-		return EntropySizeErr{int((bitSize - bitSize%32) + (bitSize-bitSize%32)/32), bitSize}
 	}
 	return nil
 }
