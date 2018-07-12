@@ -98,20 +98,6 @@ func TestNewEntropy(t *testing.T) {
 		}
 	}
 }
-func TestPadByteSlice(t *testing.T) {
-	assertEqualByteSlices(t, []byte{0}, padByteSlice([]byte{}, 1))
-	assertEqualByteSlices(t, []byte{0, 1}, padByteSlice([]byte{1}, 2))
-	assertEqualByteSlices(t, []byte{1, 1}, padByteSlice([]byte{1, 1}, 2))
-	assertEqualByteSlices(t, []byte{1, 1, 1}, padByteSlice([]byte{1, 1, 1}, 2))
-}
-
-func TestCompareByteSlices(t *testing.T) {
-	assertTrue(t, compareByteSlices([]byte{}, []byte{}))
-	assertTrue(t, compareByteSlices([]byte{1}, []byte{1}))
-	assertFalse(t, compareByteSlices([]byte{1}, []byte{0}))
-	assertFalse(t, compareByteSlices([]byte{1}, []byte{}))
-	assertFalse(t, compareByteSlices([]byte{1}, nil))
-}
 
 func TestMnemonicToByteArrayForDifferentArrayLangths(t *testing.T) {
 	max := 1000
@@ -135,6 +121,20 @@ func TestMnemonicToByteArrayForDifferentArrayLangths(t *testing.T) {
 			t.Errorf("Failed for %x - %v", seed, mnemonic)
 		}
 	}
+}
+func TestPadByteSlice(t *testing.T) {
+	assertEqualByteSlices(t, []byte{0}, padByteSlice([]byte{}, 1))
+	assertEqualByteSlices(t, []byte{0, 1}, padByteSlice([]byte{1}, 2))
+	assertEqualByteSlices(t, []byte{1, 1}, padByteSlice([]byte{1, 1}, 2))
+	assertEqualByteSlices(t, []byte{1, 1, 1}, padByteSlice([]byte{1, 1, 1}, 2))
+}
+
+func TestCompareByteSlices(t *testing.T) {
+	assertTrue(t, compareByteSlices([]byte{}, []byte{}))
+	assertTrue(t, compareByteSlices([]byte{1}, []byte{1}))
+	assertFalse(t, compareByteSlices([]byte{1}, []byte{0}))
+	assertFalse(t, compareByteSlices([]byte{1}, []byte{}))
+	assertFalse(t, compareByteSlices([]byte{1}, nil))
 }
 
 func assertNil(t *testing.T, object interface{}) {
