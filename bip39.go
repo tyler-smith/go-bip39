@@ -6,30 +6,55 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/tyler-smith/go-bip39/wordlists"
 	"golang.org/x/crypto/pbkdf2"
 )
 
 var (
 	// Some bitwise operands for working with big.Ints
-	Last11BitsMask          = big.NewInt(2047)
-	RightShift11BitsDivider = big.NewInt(2048)
-	BigOne                  = big.NewInt(1)
-	BigTwo                  = big.NewInt(2)
+	last11BitsMask          = big.NewInt(2047)
+	rightShift11BitsDivider = big.NewInt(2048)
+	bigOne                  = big.NewInt(1)
+	bigTwo                  = big.NewInt(2)
 
-	// Wordlist sets the language used for the mnemonic
-	WordList       = EnglishWordList
+	// wordList is the set of words to use
+	wordList []string
 
-	// ReverseWordMap is a reverse lookup of Wordlist
-	ReverseWordMap = map[string]int{}
+	// wordMap is a reverse lookup map for wordList
+	wordMap map[string]int
+)
+
+var (
+	// ErrInvalidMnemonic is returned when trying to use a malformed mnemonic.
+	ErrInvalidMnemonic = errors.New("Invalid menomic")
+
+	// ErrEntropyLengthInvalid is returned when trying to use an entropy set with
+	// an invalid size.
+	ErrEntropyLengthInvalid = errors.New("Entropy length must be [128, 256] and a multiple of 32")
+
+	// ErrValidatedSeedLengthMismatch is returned when a validated seed is not the
+	// same size as the given seed. This should never happen is present only as a
+	// sanity assertion.
+	ErrValidatedSeedLengthMismatch = errors.New("Seed length does not match validated seed length")
+
+	// ErrChecksumIncorrect is returned when entropy has the incorrect checksum.
+	ErrChecksumIncorrect = errors.New("Checksum incorrect")
 )
 
 func init() {
-	for i, v := range WordList {
-		ReverseWordMap[v] = i
+	SetWordList(wordlists.English)
+}
+
+// SetWordList sets the list of words to use for mnemonics. Currently the list
+// that is set is used package-wide.
+func SetWordList(list []string) {
+	wordList = list
+	wordMap = map[string]int{}
+	for i, v := range wordList {
+		wordMap[v] = i
 	}
 }
 
@@ -79,14 +104,14 @@ func NewMnemonic(entropy []byte) (string, error) {
 
 	for i := sentenceLength - 1; i >= 0; i-- {
 		// Get 11 right most bits and bitshift 11 to the right for next time
-		word.And(entropyInt, Last11BitsMask)
-		entropyInt.Div(entropyInt, RightShift11BitsDivider)
+		word.And(entropyInt, last11BitsMask)
+		entropyInt.Div(entropyInt, rightShift11BitsDivider)
 
 		// Get the bytes representing the 11 bits as a 2 byte slice
 		wordBytes := padByteSlice(word.Bytes(), 2)
 
 		// Convert bytes to an index and add that word to the list
-		words[i] = WordList[binary.BigEndian.Uint16(wordBytes)]
+		words[i] = wordList[binary.BigEndian.Uint16(wordBytes)]
 	}
 
 	return strings.Join(words, " "), nil
@@ -96,76 +121,45 @@ func NewMnemonic(entropy []byte) (string, error) {
 // suitable for creating another mnemonic.
 // An error is returned if the mnemonic is invalid.
 func MnemonicToByteArray(mnemonic string) ([]byte, error) {
-	if IsMnemonicValid(mnemonic) == false {
-		return nil, fmt.Errorf("Invalid mnemonic")
-	}
-	mnemonicSlice := strings.Split(mnemonic, " ")
+	var (
+		mnemonicSlice    = strings.Split(mnemonic, " ")
+		entropyBitSize   = len(mnemonicSlice) * 11
+		checksumBitSize  = entropyBitSize % 32
+		fullByteSize     = (entropyBitSize-checksumBitSize)/8 + 1
+		checksumByteSize = fullByteSize - (fullByteSize % 4)
+	)
 
-	bitSize := len(mnemonicSlice) * 11
-	err := validateEntropyWithChecksumBitSize(bitSize)
-	if err != nil {
-		return nil, err
+	// Pre validate that the mnemonic is well formed and only contains words that
+	// are present in the word list
+	if !IsMnemonicValid(mnemonic) {
+		return nil, ErrInvalidMnemonic
 	}
-	checksumSize := bitSize % 32
 
-	b := big.NewInt(0)
+	// Convert word indices to a `big.Int` representing the entropy
+	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
 	for _, v := range mnemonicSlice {
-		index, found := ReverseWordMap[v]
-		if found == false {
-			return nil, fmt.Errorf("Word `%v` not found in reverse map", v)
-		}
-		add := big.NewInt(int64(index))
-		b = b.Mul(b, modulo)
-		b = b.Add(b, add)
-	}
-	hex := b.Bytes()
-	checksumModulo := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(int64(checksumSize)), nil)
-	entropy, _ := big.NewInt(0).DivMod(b, checksumModulo, big.NewInt(0))
-
-	entropyHex := entropy.Bytes()
-
-	// Add padding (an extra byte is for checksum)
-	byteSize := (bitSize-checksumSize)/8 + 1
-	if len(hex) != byteSize {
-		tmp := make([]byte, byteSize)
-		diff := byteSize - len(hex)
-		for i := 0; i < len(hex); i++ {
-			tmp[i+diff] = hex[i]
-		}
-		hex = tmp
+		index := big.NewInt(int64(wordMap[v]))
+		checksummedEntropy.Mul(checksummedEntropy, modulo)
+		checksummedEntropy.Add(checksummedEntropy, index)
 	}
 
-	// Add padding (no extra byte, entropy itself does not contain checksum)
-	entropyByteSize := (bitSize - checksumSize) / 8
-	if len(entropyHex) != entropyByteSize {
-		tmp := make([]byte, entropyByteSize)
-		diff := entropyByteSize - len(entropyHex)
-		for i := 0; i < len(entropyHex); i++ {
-			tmp[i+diff] = entropyHex[i]
-		}
-		entropyHex = tmp
+	// Calculate the unchecksummed entropy so we can validate that the checksum is
+	// correct
+	checksumModulo := big.NewInt(0).Exp(bigTwo, big.NewInt(int64(checksumBitSize)), nil)
+	rawEntropy := big.NewInt(0).Div(checksummedEntropy, checksumModulo)
+
+	// Convert `big.Int`s to byte padded byte slices
+	rawEntropyBytes := padByteSlice(rawEntropy.Bytes(), checksumByteSize)
+	checksummedEntropyBytes := padByteSlice(checksummedEntropy.Bytes(), fullByteSize)
+
+	// Validate that the checksum is correct
+	newChecksummedEntropyBytes := padByteSlice(addChecksum(rawEntropyBytes), fullByteSize)
+	if !compareByteSlices(checksummedEntropyBytes, newChecksummedEntropyBytes) {
+		return nil, ErrChecksumIncorrect
 	}
 
-	validationHex := addChecksum(entropyHex)
-	if len(validationHex) != byteSize {
-		tmp2 := make([]byte, byteSize)
-		diff2 := byteSize - len(validationHex)
-		for i := 0; i < len(validationHex); i++ {
-			tmp2[i+diff2] = validationHex[i]
-		}
-		validationHex = tmp2
-	}
-
-	if len(hex) != len(validationHex) {
-		panic("[]byte len mismatch - it shouldn't happen")
-	}
-	for i := range validationHex {
-		if hex[i] != validationHex[i] {
-			return nil, fmt.Errorf("Invalid byte at position %v", i)
-		}
-	}
-	return hex, nil
+	return checksummedEntropyBytes, nil
 }
 
 // NewSeedWithErrorChecking creates a hashed seed output given the mnemonic string and a password.
@@ -182,6 +176,31 @@ func NewSeedWithErrorChecking(mnemonic string, password string) ([]byte, error) 
 // No checking is performed to validate that the string provided is a valid mnemonic.
 func NewSeed(mnemonic string, password string) []byte {
 	return pbkdf2.Key([]byte(mnemonic), []byte("mnemonic"+password), 2048, 64, sha512.New)
+}
+
+// IsMnemonicValid attempts to verify that the provided mnemonic is valid.
+// Validity is determined by both the number of words being appropriate,
+// and that all the words in the mnemonic are present in the word list.
+func IsMnemonicValid(mnemonic string) bool {
+	// Create a list of all the words in the mnemonic sentence
+	words := strings.Fields(mnemonic)
+
+	// Get word count
+	wordCount := len(words)
+
+	// The number of words should be 12, 15, 18, 21 or 24
+	if wordCount%3 != 0 || wordCount < 12 || wordCount > 24 {
+		return false
+	}
+
+	// Check if all words belong in the wordlist
+	for _, word := range words {
+		if _, ok := wordMap[word]; !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Appends to data the first (len(data) / 32)bits of the result of sha256(data)
@@ -202,66 +221,46 @@ func addChecksum(data []byte) []byte {
 	dataBigInt := new(big.Int).SetBytes(data)
 	for i := uint(0); i < checksumBitLength; i++ {
 		// Bitshift 1 left
-		dataBigInt.Mul(dataBigInt, BigTwo)
+		dataBigInt.Mul(dataBigInt, bigTwo)
 
 		// Set rightmost bit if leftmost checksum bit is set
 		if uint8(firstChecksumByte&(1<<(7-i))) > 0 {
-			dataBigInt.Or(dataBigInt, BigOne)
+			dataBigInt.Or(dataBigInt, bigOne)
 		}
 	}
 
 	return dataBigInt.Bytes()
 }
 
+// validateEntropyBitSize ensures that entropy is the correct size for being a
+// mnemonic.
+func validateEntropyBitSize(bitSize int) error {
+	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
+		return ErrEntropyLengthInvalid
+	}
+	return nil
+}
+
+// padByteSlice returns a byte slice of the given size with contents of the
+// given slice left padded and any empty spaces filled with 0's.
 func padByteSlice(slice []byte, length int) []byte {
+	if len(slice) >= length {
+		return slice
+	}
 	newSlice := make([]byte, length-len(slice))
 	return append(newSlice, slice...)
 }
 
-func validateEntropyBitSize(bitSize int) error {
-	if (bitSize%32) != 0 || bitSize < 128 || bitSize > 256 {
-		return errors.New("Entropy length must be [128, 256] and a multiple of 32")
-	}
-	return nil
-}
-
-func validateEntropyWithChecksumBitSize(bitSize int) error {
-	if (bitSize != 128+4) && (bitSize != 160+5) && (bitSize != 192+6) && (bitSize != 224+7) && (bitSize != 256+8) {
-		return fmt.Errorf("Wrong entropy + checksum size - expected %v, got %v", int((bitSize-bitSize%32)+(bitSize-bitSize%32)/32), bitSize)
-	}
-	return nil
-}
-
-// IsMnemonicValid attempts to verify that the provided mnemonic is valid.
-// Validity is determined by both the number of words being appropriate,
-// and that all the words in the mnemonic are present in the word list.
-func IsMnemonicValid(mnemonic string) bool {
-	// Create a list of all the words in the mnemonic sentence
-	words := strings.Fields(mnemonic)
-
-	//Get num of words
-	numOfWords := len(words)
-
-	// The number of words should be 12, 15, 18, 21 or 24
-	if numOfWords%3 != 0 || numOfWords < 12 || numOfWords > 24 {
+// compareByteSlices returns true of the byte slices have equal contents and
+// returns false otherwise.
+func compareByteSlices(a, b []byte) bool {
+	if len(a) != len(b) {
 		return false
 	}
-
-	// Check if all words belong in the wordlist
-	for i := 0; i < numOfWords; i++ {
-		if !contains(WordList, words[i]) {
+	for i := range a {
+		if a[i] != b[i] {
 			return false
 		}
 	}
-
 	return true
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
