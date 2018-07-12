@@ -22,17 +22,6 @@ var (
 	ErrChecksumIncorrect = errors.New("Checksum incorrect")
 )
 
-// UnknownWordErr is returned when a mnemonic contains a word that isn't in the
-// word list being used.
-type UnknownWordErr struct {
-	Word string
-}
-
-// Error returns the error string for an `UnknownWordErr`.
-func (err UnknownWordErr) Error() string {
-	return fmt.Sprintf("Word `%v` not found in reverse map", err)
-}
-
 // EntropySizeErr is returned when an entropy slice has an incorrect size.
 type EntropySizeErr struct {
 	expected int

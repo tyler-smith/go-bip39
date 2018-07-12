@@ -113,7 +113,8 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		checksumByteSize = fullByteSize - (fullByteSize % 4)
 	)
 
-	// Pre validate
+	// Pre validate that the mnemonic is well formed and only contains words that
+	// are present in the word list
 	if !IsMnemonicValid(mnemonic) {
 		return nil, ErrInvalidMnemonic
 	}
@@ -127,13 +128,9 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
 	for _, v := range mnemonicSlice {
-		index, ok := ReverseWordMap[v]
-		if !ok {
-			return nil, UnknownWordErr{Word: v}
-		}
-		add := big.NewInt(int64(index))
+		index := big.NewInt(int64(ReverseWordMap[v]))
 		checksummedEntropy.Mul(checksummedEntropy, modulo)
-		checksummedEntropy.Add(checksummedEntropy, add)
+		checksummedEntropy.Add(checksummedEntropy, index)
 	}
 
 	// Calculate the unchecksummed entropy so we can validate that the checksum is
@@ -177,7 +174,7 @@ func IsMnemonicValid(mnemonic string) bool {
 	// Create a list of all the words in the mnemonic sentence
 	words := strings.Fields(mnemonic)
 
-	//Get num of words
+	// Get word count
 	numOfWords := len(words)
 
 	// The number of words should be 12, 15, 18, 21 or 24
@@ -186,8 +183,8 @@ func IsMnemonicValid(mnemonic string) bool {
 	}
 
 	// Check if all words belong in the wordlist
-	for i := 0; i < numOfWords; i++ {
-		if !contains(WordList, words[i]) {
+	for _, word := range words {
+		if _, ok := ReverseWordMap[word]; !ok {
 			return false
 		}
 	}
@@ -250,16 +247,6 @@ func padByteSlice(slice []byte, length int) []byte {
 	}
 	newSlice := make([]byte, length-len(slice))
 	return append(newSlice, slice...)
-}
-
-// contains checks if a given string is in a given slice of strings.
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 // compareByteSlices returns true of the byte slices have equal contents and
