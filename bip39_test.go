@@ -403,3 +403,39 @@ func testVectors() []vector {
 		},
 	}
 }
+
+func TestEntropyFromMnemonic_128(t *testing.T) {
+	testEntropyFromMnemonic(t, 128)
+}
+
+func TestEntropyFromMnemonic_160(t *testing.T) {
+	testEntropyFromMnemonic(t, 160)
+}
+
+func TestEntropyFromMnemonic_192(t *testing.T) {
+	testEntropyFromMnemonic(t, 192)
+}
+
+func TestEntropyFromMnemonic_224(t *testing.T) {
+	testEntropyFromMnemonic(t, 224)
+}
+
+func TestEntropyFromMnemonic_256(t *testing.T) {
+	testEntropyFromMnemonic(t, 256)
+}
+
+func testEntropyFromMnemonic(t *testing.T, bitSize int) {
+	for i := 0; i < 512; i++ {
+		entropy, err := NewEntropy(bitSize)
+		assertNil(t, err)
+		assertTrue(t, len(entropy) != 0)
+
+		mnemonic, err := NewMnemonic(entropy)
+		assertNil(t, err)
+		assertTrue(t, len(mnemonic) != 0)
+
+		outEntropy, err := EntropyFromMnemonic(mnemonic)
+		assertNil(t, err)
+		assertEqualByteSlices(t, entropy, outEntropy)
+	}
+}
