@@ -120,7 +120,7 @@ func NewMnemonic(entropy []byte) (string, error) {
 // MnemonicToByteArray takes a mnemonic string and turns it into a byte array
 // suitable for creating another mnemonic.
 // An error is returned if the mnemonic is invalid.
-func MnemonicToByteArray(mnemonic string) ([]byte, error) {
+func MnemonicToByteArray(mnemonic string, raw ...bool) ([]byte, error) {
 	var (
 		mnemonicSlice    = strings.Split(mnemonic, " ")
 		entropyBitSize   = len(mnemonicSlice) * 11
@@ -159,6 +159,12 @@ func MnemonicToByteArray(mnemonic string) ([]byte, error) {
 		return nil, ErrChecksumIncorrect
 	}
 
+	if raw == nil {
+		return checksummedEntropyBytes, nil
+	}
+	if raw[0] == true {
+		return rawEntropyBytes, nil
+	}
 	return checksummedEntropyBytes, nil
 }
 
