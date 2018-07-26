@@ -33,6 +33,10 @@ var (
 
 	// ErrChecksumIncorrect is returned when entropy has the incorrect checksum.
 	ErrChecksumIncorrect = errors.New("Checksum incorrect")
+
+	// ErrUknownLanguage is returned when trying to use a language we don't have a
+	// list for
+	ErrUknownLanguage = errors.New("Unknown language")
 )
 
 var (

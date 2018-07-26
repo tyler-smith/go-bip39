@@ -11,6 +11,7 @@ coverage.out
 *.a
 *.so
 *.db
+dist
 
 # Temp files
 *~

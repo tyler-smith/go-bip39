@@ -1,12 +1,21 @@
 language: go
-go: 
- - "1.6.x"
- - "1.7.x"
- - "1.8.x"
- - "1.9.x"
- - "1.10.x"
- - "release"
- - "tip"
-
+go:
+  - "1.6.x"
+  - "1.7.x"
+  - "1.8.x"
+  - "1.9.x"
+  - "1.10.x"
+  - "release"
+  - "tip"
 script:
- - make profile_tests
+- make profile_tests
+before_deploy:
+- make cli
+deploy:
+  provider: releases
+  api_key:
+    secure: n+bXynw4I7PGwya5+g+o5QTcgby+UBu+t68jcupDDlQXBweqG4kYkVAKdwS/Qju2rm5bP/TPwOAcwcVcZmSJbbj4fOa794lqcUKuMbZe/c1aXDhsT7gTmc07xXqLpDpVjtt/XiBghsbZ9ocV+DuHB6Q2/SikxyksZFkVyKdV6G8H4IFW+KlAGm9ybara9JzReDfcLrO66Cb1XiAPUVBxhX0A6bzHubNZYbp0l1gQSXu72jkVZ6xP7e5nm3AcOu3PIPb93Y1i0UvmndszJcg9W8HmbFZdB3Ca/nPHkSSwuK11+YSqgi6lfFamxsbbVDUU32khFuXZbgiaqB4/QGgzCabrIeiVg0ffi8GwC/UJ5lizWVGEIc7Yep3oDBZ8xZePNOPrA6+t80l6m1VoKGABUz8kLQnBdG6ZKtIZ/BKacNSTPzk8Cjo8+7kbqGyYTcdTp/v5VjBcBTJzZ1YrB/IvBQRHUWQmu+871BUcvXRYNxz+J4WI/mReO03vvh/+qS//fKMm6otATMBSpq4fGJhhEzObAsiLvfLc+B//+i5/5eq6wUlbgTJTnKkdGlq+/7jmqidhn1DLI2nSS85Mc+vQONCpCBFnOScANCOU7J1ds518NNWDQoEBU0b00tX23RrKmT/trtYfe/Qs9hPAgqd+lFh+f0yvf2DBbnUSWep1BFE=
+  file: dist/bip39
+  on:
+    tags: true
+    repo: tyler-smith/go-bip39
