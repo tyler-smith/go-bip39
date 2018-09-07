@@ -81,6 +81,11 @@ func SetWordList(list []string) {
 	}
 }
 
+// GetWordList gets the list of words to use for mnemonics
+func GetWordList() []string {
+	return wordList
+}
+
 // NewEntropy will create random entropy bytes
 // so long as the requested size bitSize is an appropriate size.
 //
@@ -352,7 +357,7 @@ func splitMnemonicWords(mnemonic string) ([]string, bool) {
 	// Create a list of all the words in the mnemonic sentence
 	words := strings.Fields(mnemonic)
 
-	//Get num of words
+	// Get num of words
 	numOfWords := len(words)
 
 	// The number of words should be 12, 15, 18, 21 or 24
