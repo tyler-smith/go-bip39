@@ -81,7 +81,7 @@ func SetWordList(list []string) {
 	}
 }
 
-
+// GetWordIndex get word index
 func GetWordIndex(word string) (idx int, found bool) {
 	idx, found = wordList[word]
 	return
