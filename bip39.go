@@ -83,7 +83,7 @@ func SetWordList(list []string) {
 
 // GetWordIndex get word index in wordMap
 func GetWordIndex(word string) (int, bool) {
-	return wordList[word]
+	return wordMap[word]
 }
 
 // NewEntropy will create random entropy bytes
