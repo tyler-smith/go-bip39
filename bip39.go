@@ -1,4 +1,4 @@
-// Package bip39 is the official Golang implementation of the BIP39 spec.
+// Package bip39 is the Golang implementation of the BIP39 spec.
 //
 // The official BIP39 spec can be found at
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
@@ -20,10 +20,10 @@ import (
 
 var (
 	// Some bitwise operands for working with big.Ints
-	last11BitsMask          = big.NewInt(2047)
-	rightShift11BitsDivider = big.NewInt(2048)
-	bigOne                  = big.NewInt(1)
-	bigTwo                  = big.NewInt(2)
+	last11BitsMask  = big.NewInt(2047)
+	shift11BitsMask = big.NewInt(2048)
+	bigOne          = big.NewInt(1)
+	bigTwo          = big.NewInt(2)
 
 	// used to isolate the checksum bits from the entropy+checksum byte array
 	wordLengthChecksumMasksMapping = map[int]*big.Int{
@@ -81,12 +81,12 @@ func SetWordList(list []string) {
 	}
 }
 
-// GetWordList gets the list of words to use for mnemonics
+// GetWordList gets the list of words to use for mnemonics.
 func GetWordList() []string {
 	return wordList
 }
 
-// GetWordIndex get word index in wordMap
+// GetWordIndex gets word index in wordMap.
 func GetWordIndex(word string) (int, bool) {
 	idx, ok := wordMap[word]
 	return idx, ok
@@ -116,6 +116,7 @@ func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 		return nil, errors.New("Invalid mnemonic")
 	}
 
+	// Decode the words into a big.Int.
 	b := big.NewInt(0)
 	for _, v := range mnemonicSlice {
 		index, found := wordMap[v]
@@ -124,20 +125,24 @@ func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 		}
 		var wordBytes [2]byte
 		binary.BigEndian.PutUint16(wordBytes[:], uint16(index))
-		b = b.Mul(b, rightShift11BitsDivider)
+		b = b.Mul(b, shift11BitsMask)
 		b = b.Or(b, big.NewInt(0).SetBytes(wordBytes[:]))
 	}
 
+	// Build and add the checksum to the big.Int.
 	checksum := big.NewInt(0)
 	checksumMask := wordLengthChecksumMasksMapping[len(mnemonicSlice)]
 	checksum = checksum.And(b, checksumMask)
 
 	b.Div(b, big.NewInt(0).Add(checksumMask, bigOne))
+
+	// The entropy is the underlying bytes of the big.Int. Any upper bytes of
+	// all 0's are not returned so we pad the beginning of the slice with empty
+	// bytes if necessary.
 	entropy := b.Bytes()
-	// pad entropy if needed
 	entropy = padByteSlice(entropy, len(mnemonicSlice)/3*4)
 
-	// generate the checksum once again, mask and ensure it equals the checksum we got from the mneomnic
+	// Generate the checksum and compare with the one we got from the mneomnic.
 	entropyChecksumBytes := computeChecksum(entropy)
 	entropyChecksum := big.NewInt(int64(entropyChecksumBytes[0]))
 	if l := len(mnemonicSlice); l != 24 {
@@ -149,7 +154,6 @@ func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 		return nil, errors.New("mnemonic's entropy doesn't match its checksum")
 	}
 
-	// return (padded) entropy
 	return entropy, nil
 }
 
@@ -157,42 +161,43 @@ func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 // the given entropy.
 // If the provide entropy is invalid, an error will be returned.
 func NewMnemonic(entropy []byte) (string, error) {
-	// Compute some lengths for convenience
+	// Compute some lengths for convenience.
 	entropyBitLength := len(entropy) * 8
 	checksumBitLength := entropyBitLength / 32
 	sentenceLength := (entropyBitLength + checksumBitLength) / 11
 
+	// Validate that the requested size is supported.
 	err := validateEntropyBitSize(entropyBitLength)
 	if err != nil {
 		return "", err
 	}
 
-	// Add checksum to entropy
+	// Add checksum to entropy.
 	entropy = addChecksum(entropy)
 
-	// Break entropy up into sentenceLength chunks of 11 bits
-	// For each word AND mask the rightmost 11 bits and find the word at that index
-	// Then bitshift entropy 11 bits right and repeat
-	// Add to the last empty slot so we can work with LSBs instead of MSB
+	// Break entropy up into sentenceLength chunks of 11 bits.
+	// For each word AND mask the rightmost 11 bits and find the word at that index.
+	// Then bitshift entropy 11 bits right and repeat.
+	// Add to the last empty slot so we can work with LSBs instead of MSB.
 
-	// Entropy as an int so we can bitmask without worrying about bytes slices
+	// Entropy as an int so we can bitmask without worrying about bytes slices.
 	entropyInt := new(big.Int).SetBytes(entropy)
 
-	// Slice to hold words in
+	// Slice to hold words in.
 	words := make([]string, sentenceLength)
 
-	// Throw away big int for AND masking
+	// Throw away big.Int for AND masking.
 	word := big.NewInt(0)
 
 	for i := sentenceLength - 1; i >= 0; i-- {
-		// Get 11 right most bits and bitshift 11 to the right for next time
+		// Get 11 right most bits and bitshift 11 to the right for next time.
 		word.And(entropyInt, last11BitsMask)
-		entropyInt.Div(entropyInt, rightShift11BitsDivider)
+		entropyInt.Div(entropyInt, shift11BitsMask)
 
-		// Get the bytes representing the 11 bits as a 2 byte slice
+		// Get the bytes representing the 11 bits as a 2 byte slice.
 		wordBytes := padByteSlice(word.Bytes(), 2)
 
-		// Convert bytes to an index and add that word to the list
+		// Convert bytes to an index and add that word to the list.
 		words[i] = wordList[binary.BigEndian.Uint16(wordBytes)]
 	}
 
@@ -212,12 +217,12 @@ func MnemonicToByteArray(mnemonic string, raw ...bool) ([]byte, error) {
 	)
 
 	// Pre validate that the mnemonic is well formed and only contains words that
-	// are present in the word list
+	// are present in the word list.
 	if !IsMnemonicValid(mnemonic) {
 		return nil, ErrInvalidMnemonic
 	}
 
-	// Convert word indices to a `big.Int` representing the entropy
+	// Convert word indices to a big.Int representing the entropy.
 	checksummedEntropy := big.NewInt(0)
 	modulo := big.NewInt(2048)
 	for _, v := range mnemonicSlice {
@@ -227,15 +232,15 @@ func MnemonicToByteArray(mnemonic string, raw ...bool) ([]byte, error) {
 	}
 
 	// Calculate the unchecksummed entropy so we can validate that the checksum is
-	// correct
+	// correct.
 	checksumModulo := big.NewInt(0).Exp(bigTwo, big.NewInt(int64(checksumBitSize)), nil)
 	rawEntropy := big.NewInt(0).Div(checksummedEntropy, checksumModulo)
 
-	// Convert `big.Int`s to byte padded byte slices
+	// Convert big.Ints to byte padded byte slices.
 	rawEntropyBytes := padByteSlice(rawEntropy.Bytes(), checksumByteSize)
 	checksummedEntropyBytes := padByteSlice(checksummedEntropy.Bytes(), fullByteSize)
 
-	// Validate that the checksum is correct
+	// Validate that the checksum is correct.
 	newChecksummedEntropyBytes := padByteSlice(addChecksum(rawEntropyBytes), fullByteSize)
 	if !compareByteSlices(checksummedEntropyBytes, newChecksummedEntropyBytes) {
 		return nil, ErrChecksumIncorrect
