@@ -10,7 +10,9 @@ go:
 
 before_install:
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $GOPATH/bin v1.10
+  - go get -u github.com/go-critic/go-critic/...
 
 script:
   - $GOPATH/bin/golangci-lint run
+  - gocritic check-package -disable=paramTypeCombine -withOpinionated -withExperimental github.com/tyler-smith/go-bip39
   - make profile_tests
