@@ -216,7 +216,8 @@ func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 	}
 
 	for _, m := range ms {
-		seed, _ := hex.DecodeString(m)
+		seed, err := hex.DecodeString(m)
+		assertNil(t, err)
 
 		mnemonic, err := NewMnemonic(seed)
 		if err != nil {
