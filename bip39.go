@@ -313,7 +313,7 @@ func addChecksum(data []byte) []byte {
 		dataBigInt.Mul(dataBigInt, bigTwo)
 
 		// Set rightmost bit if leftmost checksum bit is set
-		if uint8(firstChecksumByte&(1<<(7-i))) > 0 {
+		if firstChecksumByte&(1<<(7-i)) > 0 {
 			dataBigInt.Or(dataBigInt, bigOne)
 		}
 	}
