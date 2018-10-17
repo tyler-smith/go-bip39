@@ -115,55 +115,6 @@ func TestCompareByteSlices(t *testing.T) {
 	assertFalse(t, compareByteSlices([]byte{1}, nil))
 }
 
-func assertNil(t *testing.T, object interface{}) {
-	if object != nil {
-		t.Errorf("Expected nil, got %v", object)
-	}
-}
-
-func assertNotNil(t *testing.T, object interface{}) {
-	if object == nil {
-		t.Error("Expected not nil")
-	}
-}
-
-func assertTrue(t *testing.T, a bool) {
-	if !a {
-		t.Error("Expected true, got false")
-	}
-}
-
-func assertFalse(t *testing.T, a bool) {
-	if a {
-		t.Error("Expected false, got true")
-	}
-}
-
-func assertEqual(t *testing.T, a, b interface{}) {
-	if a != b {
-		t.Errorf("Objects not equal, expected `%s` and got `%s`", a, b)
-	}
-}
-
-func assertEqualString(t *testing.T, a, b string) {
-	if a != b {
-		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
-	}
-}
-
-func assertEqualByteSlices(t *testing.T, a, b []byte) {
-	if len(a) != len(b) {
-		t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
-		return
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
-			return
-		}
-	}
-}
-
 func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 	ms := []string{
 		"00000000000000000000000000000000",
@@ -259,23 +210,39 @@ func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 	}
 }
 
-func badMnemonicSentences() []vector {
-	return []vector{
-		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
-		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow yellow"},
-		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice caged above"},
-		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo, wrong"},
-		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
-		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will will will"},
-		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always."},
-		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo why"},
-		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art art"},
-		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thanks year wave worth useful legal winner thank year wave sausage worth title"},
-		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letters advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless"},
-		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo voted"},
-		{mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge"},
-		{mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap"},
-		{mnemonic: "dignity pass list indicate nasty"},
+func TestEntropyFromMnemonic_128(t *testing.T) {
+	testEntropyFromMnemonic(t, 128)
+}
+
+func TestEntropyFromMnemonic_160(t *testing.T) {
+	testEntropyFromMnemonic(t, 160)
+}
+
+func TestEntropyFromMnemonic_192(t *testing.T) {
+	testEntropyFromMnemonic(t, 192)
+}
+
+func TestEntropyFromMnemonic_224(t *testing.T) {
+	testEntropyFromMnemonic(t, 224)
+}
+
+func TestEntropyFromMnemonic_256(t *testing.T) {
+	testEntropyFromMnemonic(t, 256)
+}
+
+func testEntropyFromMnemonic(t *testing.T, bitSize int) {
+	for i := 0; i < 512; i++ {
+		entropy, err := NewEntropy(bitSize)
+		assertNil(t, err)
+		assertTrue(t, len(entropy) != 0)
+
+		mnemonic, err := NewMnemonic(entropy)
+		assertNil(t, err)
+		assertTrue(t, len(mnemonic) != 0)
+
+		outEntropy, err := EntropyFromMnemonic(mnemonic)
+		assertNil(t, err)
+		assertEqualByteSlices(t, entropy, outEntropy)
 	}
 }
 
@@ -404,38 +371,71 @@ func testVectors() []vector {
 	}
 }
 
-func TestEntropyFromMnemonic_128(t *testing.T) {
-	testEntropyFromMnemonic(t, 128)
+func badMnemonicSentences() []vector {
+	return []vector{
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow yellow"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice caged above"},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo, wrong"},
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will will will"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always."},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo why"},
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art art"},
+		{mnemonic: "legal winner thank year wave sausage worth useful legal winner thanks year wave worth useful legal winner thank year wave sausage worth title"},
+		{mnemonic: "letter advice cage absurd amount doctor acoustic avoid letters advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless"},
+		{mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo voted"},
+		{mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge"},
+		{mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap"},
+		{mnemonic: "dignity pass list indicate nasty"},
+	}
 }
 
-func TestEntropyFromMnemonic_160(t *testing.T) {
-	testEntropyFromMnemonic(t, 160)
+func assertNil(t *testing.T, object interface{}) {
+	if object != nil {
+		t.Errorf("Expected nil, got %v", object)
+	}
 }
 
-func TestEntropyFromMnemonic_192(t *testing.T) {
-	testEntropyFromMnemonic(t, 192)
+func assertNotNil(t *testing.T, object interface{}) {
+	if object == nil {
+		t.Error("Expected not nil")
+	}
 }
 
-func TestEntropyFromMnemonic_224(t *testing.T) {
-	testEntropyFromMnemonic(t, 224)
+func assertTrue(t *testing.T, a bool) {
+	if !a {
+		t.Error("Expected true, got false")
+	}
 }
 
-func TestEntropyFromMnemonic_256(t *testing.T) {
-	testEntropyFromMnemonic(t, 256)
+func assertFalse(t *testing.T, a bool) {
+	if a {
+		t.Error("Expected false, got true")
+	}
 }
 
-func testEntropyFromMnemonic(t *testing.T, bitSize int) {
-	for i := 0; i < 512; i++ {
-		entropy, err := NewEntropy(bitSize)
-		assertNil(t, err)
-		assertTrue(t, len(entropy) != 0)
+func assertEqual(t *testing.T, a, b interface{}) {
+	if a != b {
+		t.Errorf("Objects not equal, expected `%s` and got `%s`", a, b)
+	}
+}
 
-		mnemonic, err := NewMnemonic(entropy)
-		assertNil(t, err)
-		assertTrue(t, len(mnemonic) != 0)
+func assertEqualString(t *testing.T, a, b string) {
+	if a != b {
+		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
+	}
+}
 
-		outEntropy, err := EntropyFromMnemonic(mnemonic)
-		assertNil(t, err)
-		assertEqualByteSlices(t, entropy, outEntropy)
+func assertEqualByteSlices(t *testing.T, a, b []byte) {
+	if len(a) != len(b) {
+		t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+		return
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			t.Errorf("Byte slices not equal, expected %v and got %v", a, b)
+			return
+		}
 	}
 }
