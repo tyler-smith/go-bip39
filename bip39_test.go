@@ -4,12 +4,32 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
+
+	"github.com/tyler-smith/go-bip39/wordlists"
 )
 
 type vector struct {
 	entropy  string
 	mnemonic string
 	seed     string
+}
+
+func TestGetWordList(t *testing.T) {
+	assertEqualStringSlices(t, wordlists.English, GetWordList())
+}
+
+func TestGetWordIndex(t *testing.T) {
+	for expectedIdx, word := range wordList {
+		actualIdx, ok := GetWordIndex(word)
+		assertTrue(t, ok)
+		assertEqual(t, actualIdx, expectedIdx)
+	}
+
+	for _, word := range []string{"a", "set", "of", "invalid", "words"} {
+		actualIdx, ok := GetWordIndex(word)
+		assertFalse(t, ok)
+		assertEqual(t, actualIdx, 0)
+	}
 }
 
 func TestNewMnemonic(t *testing.T) {
@@ -51,7 +71,7 @@ func TestIsMnemonicValid(t *testing.T) {
 	}
 }
 
-func TestInvalidMnemonicFails(t *testing.T) {
+func TestMnemonicToByteArrayInvalidMnemonic(t *testing.T) {
 	for _, vector := range badMnemonicSentences() {
 		_, err := MnemonicToByteArray(vector.mnemonic)
 		assertNotNil(t, err)
@@ -209,40 +229,55 @@ func TestMnemonicToByteArrayForZeroLeadingSeeds(t *testing.T) {
 		}
 	}
 }
-
-func TestEntropyFromMnemonic_128(t *testing.T) {
+func TestEntropyFromMnemonic128(t *testing.T) {
 	testEntropyFromMnemonic(t, 128)
 }
 
-func TestEntropyFromMnemonic_160(t *testing.T) {
+func TestEntropyFromMnemonic160(t *testing.T) {
 	testEntropyFromMnemonic(t, 160)
 }
 
-func TestEntropyFromMnemonic_192(t *testing.T) {
+func TestEntropyFromMnemonic192(t *testing.T) {
 	testEntropyFromMnemonic(t, 192)
 }
 
-func TestEntropyFromMnemonic_224(t *testing.T) {
+func TestEntropyFromMnemonic224(t *testing.T) {
 	testEntropyFromMnemonic(t, 224)
 }
 
-func TestEntropyFromMnemonic_256(t *testing.T) {
+func TestEntropyFromMnemonic256(t *testing.T) {
 	testEntropyFromMnemonic(t, 256)
+}
+
+func TestEntropyFromMnemonicInvalidChecksum(t *testing.T) {
+	_, err := EntropyFromMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon yellow")
+	assertEqual(t, ErrChecksumIncorrect, err)
+}
+
+func TestEntropyFromMnemonicInvalidMnemonicSize(t *testing.T) {
+	for _, mnemonic := range []string{
+		"a a a a a a a a a a a a a a a a a a a a a a a a a", // Too many words
+		"a", // Too few
+		"a a a a a a a a a a a a a a", // Not multiple of 3
+	} {
+		_, err := EntropyFromMnemonic(mnemonic)
+		assertEqual(t, ErrInvalidMnemonic, err)
+	}
 }
 
 func testEntropyFromMnemonic(t *testing.T, bitSize int) {
 	for i := 0; i < 512; i++ {
-		entropy, err := NewEntropy(bitSize)
+		expectedEntropy, err := NewEntropy(bitSize)
 		assertNil(t, err)
-		assertTrue(t, len(entropy) != 0)
+		assertTrue(t, len(expectedEntropy) != 0)
 
-		mnemonic, err := NewMnemonic(entropy)
+		mnemonic, err := NewMnemonic(expectedEntropy)
 		assertNil(t, err)
 		assertTrue(t, len(mnemonic) != 0)
 
-		outEntropy, err := EntropyFromMnemonic(mnemonic)
+		actualEntropy, err := EntropyFromMnemonic(mnemonic)
 		assertNil(t, err)
-		assertEqualByteSlices(t, entropy, outEntropy)
+		assertEqualByteSlices(t, expectedEntropy, actualEntropy)
 	}
 }
 
@@ -424,6 +459,19 @@ func assertEqual(t *testing.T, a, b interface{}) {
 func assertEqualString(t *testing.T, a, b string) {
 	if a != b {
 		t.Errorf("Strings not equal, expected `%s` and got `%s`", a, b)
+	}
+}
+
+func assertEqualStringSlices(t *testing.T, a, b []string) {
+	if len(a) != len(b) {
+		t.Errorf("String slices not equal, expected %v and got %v", a, b)
+		return
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			t.Errorf("String slices not equal, expected %v and got %v", a, b)
+			return
+		}
 	}
 }
 

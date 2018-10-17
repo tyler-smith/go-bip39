@@ -52,7 +52,7 @@ var (
 
 var (
 	// ErrInvalidMnemonic is returned when trying to use a malformed mnemonic.
-	ErrInvalidMnemonic = errors.New("Invalid menomic")
+	ErrInvalidMnemonic = errors.New("Invalid mnenomic")
 
 	// ErrEntropyLengthInvalid is returned when trying to use an entropy set with
 	// an invalid size.
@@ -113,7 +113,7 @@ func NewEntropy(bitSize int) ([]byte, error) {
 func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 	mnemonicSlice, isValid := splitMnemonicWords(mnemonic)
 	if !isValid {
-		return nil, errors.New("Invalid mnemonic")
+		return nil, ErrInvalidMnemonic
 	}
 
 	// Decode the words into a big.Int.
@@ -151,7 +151,7 @@ func EntropyFromMnemonic(mnemonic string) ([]byte, error) {
 	}
 
 	if checksum.Cmp(entropyChecksum) != 0 {
-		return nil, errors.New("mnemonic's entropy doesn't match its checksum")
+		return nil, ErrChecksumIncorrect
 	}
 
 	return entropy, nil
@@ -246,12 +246,10 @@ func MnemonicToByteArray(mnemonic string, raw ...bool) ([]byte, error) {
 		return nil, ErrChecksumIncorrect
 	}
 
-	if raw == nil {
-		return checksummedEntropyBytes, nil
-	}
-	if raw[0] == true {
+	if len(raw) > 0 && raw[0] {
 		return rawEntropyBytes, nil
 	}
+
 	return checksummedEntropyBytes, nil
 }
 
