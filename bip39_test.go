@@ -79,7 +79,7 @@ func TestMnemonicToByteArrayInvalidMnemonic(t *testing.T) {
 
 	_, err := MnemonicToByteArray("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon yellow")
 	assertNotNil(t, err)
-	assertEqual(t, err, ErrChecksumIncorrect)
+	assertEqual(t, err, ErrInvalidMnemonic)
 }
 
 func TestNewEntropy(t *testing.T) {
@@ -257,7 +257,7 @@ func TestEntropyFromMnemonicInvalidChecksum(t *testing.T) {
 func TestEntropyFromMnemonicInvalidMnemonicSize(t *testing.T) {
 	for _, mnemonic := range []string{
 		"a a a a a a a a a a a a a a a a a a a a a a a a a", // Too many words
-		"a", // Too few
+		"a",                           // Too few
 		"a a a a a a a a a a a a a a", // Not multiple of 3
 	} {
 		_, err := EntropyFromMnemonic(mnemonic)
@@ -423,6 +423,9 @@ func badMnemonicSentences() []vector {
 		{mnemonic: "jello better achieve collect unaware mountain thought cargo oxygen act hood bridge"},
 		{mnemonic: "renew, stay, biology, evidence, goat, welcome, casual, join, adapt, armor, shuffle, fault, little, machine, walk, stumble, urge, swap"},
 		{mnemonic: "dignity pass list indicate nasty"},
+
+		// From issue 32
+		{mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon letter"},
 	}
 }
 

@@ -273,25 +273,8 @@ func NewSeed(mnemonic string, password string) []byte {
 // Validity is determined by both the number of words being appropriate,
 // and that all the words in the mnemonic are present in the word list.
 func IsMnemonicValid(mnemonic string) bool {
-	// Create a list of all the words in the mnemonic sentence
-	words := strings.Fields(mnemonic)
-
-	// Get word count
-	wordCount := len(words)
-
-	// The number of words should be 12, 15, 18, 21 or 24
-	if wordCount%3 != 0 || wordCount < 12 || wordCount > 24 {
-		return false
-	}
-
-	// Check if all words belong in the wordlist
-	for _, word := range words {
-		if _, ok := wordMap[word]; !ok {
-			return false
-		}
-	}
-
-	return true
+	_, err := EntropyFromMnemonic(mnemonic)
+	return err == nil
 }
 
 // Appends to data the first (len(data) / 32)bits of the result of sha256(data)
