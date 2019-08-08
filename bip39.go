@@ -347,7 +347,7 @@ func compareByteSlices(a, b []byte) bool {
 
 func splitMnemonicWords(mnemonic string) ([]string, bool) {
 	// Create a list of all the words in the mnemonic sentence
-	words := strings.Fields(mnemonic)
+	words := strings.Split(mnemonic, " ")
 
 	// Get num of words
 	numOfWords := len(words)
