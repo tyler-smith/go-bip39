@@ -73,13 +73,27 @@ func TestIsMnemonicValid(t *testing.T) {
 	}
 }
 
-func TestMnemonicToByteArrayInvalidMnemonic(t *testing.T) {
+func TestMnemonicToByteArrayWithRawIsEqualToEntropyFromMnemonic(t *testing.T) {
+	for _, vector := range testVectors() {
+		rawEntropy, err := MnemonicToByteArray(vector.mnemonic, true)
+		assert.Nil(t, err)
+		rawEntropy2, err := EntropyFromMnemonic(vector.mnemonic)
+		assert.Nil(t, err)
+		assert.True(t, bytes.Equal(rawEntropy, rawEntropy2))
+	}
+}
+
+func TestMnemonicToByteArrayInvalidMnemonics(t *testing.T) {
 	for _, vector := range badMnemonicSentences() {
 		_, err := MnemonicToByteArray(vector.mnemonic)
 		assert.NotNil(t, err)
 	}
 
 	_, err := MnemonicToByteArray("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon yellow")
+	assert.NotNil(t, err)
+	assertEqual(t, err, ErrChecksumIncorrect)
+
+	_, err = MnemonicToByteArray("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon angry")
 	assert.NotNil(t, err)
 	assertEqual(t, err, ErrInvalidMnemonic)
 }
