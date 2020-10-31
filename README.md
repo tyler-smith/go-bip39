@@ -7,7 +7,7 @@
 
 [![Build check](https://github.com/tyler-smith/go-bip39/workflows/build-check/badge.svg?branch=master)](https://github.com/tyler-smith/go-bip39/actions?query=workflow%3Abuild-check+branch%3Amaster)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tyler-smith/go-bip39)](https://goreportcard.com/report/github.com/tyler-smith/go-bip39)
-[![PGP](https://img.shields.io/keybase/pgp/tylersmith?color=green)](https://keybase.io/tylersmith)
+[![Coverage Status](https://coveralls.io/repos/github/tyler-smith/go-bip39/badge.svg?branch=TS_v2)](https://coveralls.io/github/tyler-smith/go-bip39?branch=TS_v2)
 
 ## Example
 

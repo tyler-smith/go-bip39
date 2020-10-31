@@ -216,50 +216,25 @@ func NewMnemonic(entropy []byte) (string, error) {
 // An error is returned if the mnemonic is invalid.
 func MnemonicToByteArray(mnemonic string, raw ...bool) ([]byte, error) {
 	var (
-		mnemonicSlice    = strings.Split(mnemonic, " ")
-		entropyBitSize   = len(mnemonicSlice) * 11
-		checksumBitSize  = entropyBitSize % 32
-		fullByteSize     = (entropyBitSize-checksumBitSize)/8 + 1
-		checksumByteSize = fullByteSize - (fullByteSize % 4)
+		mnemonicSlice   = strings.Split(mnemonic, " ")
+		entropyBitSize  = len(mnemonicSlice) * 11
+		checksumBitSize = entropyBitSize % 32
+		fullByteSize    = (entropyBitSize-checksumBitSize)/8 + 1
 	)
 
-	// Pre validate that the mnemonic is well formed and only contains words that
-	// are present in the word list.
-	if !IsMnemonicValid(mnemonic) {
-		return nil, ErrInvalidMnemonic
+	// Turn into raw entropy.
+	rawEntropyBytes, err := EntropyFromMnemonic(mnemonic)
+	if err != nil {
+		return nil, err
 	}
 
-	// Convert word indices to a big.Int representing the entropy.
-	checksummedEntropy := big.NewInt(0)
-	modulo := big.NewInt(2048)
-
-	for _, v := range mnemonicSlice {
-		index := big.NewInt(int64(wordMap[v]))
-
-		checksummedEntropy.Mul(checksummedEntropy, modulo)
-		checksummedEntropy.Add(checksummedEntropy, index)
-	}
-
-	// Calculate the unchecksummed entropy so we can validate that the checksum is
-	// correct.
-	checksumModulo := big.NewInt(0).Exp(bigTwo, big.NewInt(int64(checksumBitSize)), nil)
-	rawEntropy := big.NewInt(0).Div(checksummedEntropy, checksumModulo)
-
-	// Convert big.Ints to byte padded byte slices.
-	rawEntropyBytes := padByteSlice(rawEntropy.Bytes(), checksumByteSize)
-	checksummedEntropyBytes := padByteSlice(checksummedEntropy.Bytes(), fullByteSize)
-
-	// Validate that the checksum is correct.
-	newChecksummedEntropyBytes := padByteSlice(addChecksum(rawEntropyBytes), fullByteSize)
-	if !compareByteSlices(checksummedEntropyBytes, newChecksummedEntropyBytes) {
-		return nil, ErrChecksumIncorrect
-	}
-
+	// If we want the raw entropy then we're done.
 	if len(raw) > 0 && raw[0] {
 		return rawEntropyBytes, nil
 	}
 
-	return checksummedEntropyBytes, nil
+	// Otherwise add the checksum before returning
+	return padByteSlice(addChecksum(rawEntropyBytes), fullByteSize), nil
 }
 
 // NewSeedWithErrorChecking creates a hashed seed output given the mnemonic string and a password.
