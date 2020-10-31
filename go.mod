@@ -1,6 +1,6 @@
 module github.com/tyler-smith/go-bip39
 
-go 1.14
+go 1.11
 
 require (
 	github.com/tyler-smith/assert v1.0.1
