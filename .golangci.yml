@@ -1,0 +1,77 @@
+run:
+  max-same-issues: 0
+  max-issues-per-linter: 0
+  skip-dirs:
+    - wordlists
+
+issues:
+  exclude-rules:
+    - path: bip39_test\.go
+      text: "Function 'testVectors' is too long"
+      linters:
+        - funlen
+    - path: (languages|bip39_test|example_test)\.go
+      linters:
+        - lll
+    - path: bip39\.go
+      text: "ST1005: error strings should not be capitalized"
+      linters:
+        - stylecheck
+
+linters-settings:
+  dupl:
+    threshold: 20
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+  goconst:
+    min-occurrences: 2
+  gocyclo:
+    min-complexity: 7
+  misspell:
+    locale: US
+  nakedret:
+    max-func-lines: 0
+  unparam:
+    algo: cha
+    check-exported: false
+
+linters:
+  enable:
+    - asciicheck
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - goconst
+    - gocognit
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofmt
+    - goimports
+    - golint
+    - gosimple
+    - gosec
+    - govet
+    - ineffassign
+    - lll
+    - megacheck
+    - maligned
+    - misspell
+    - nakedret
+    - nestif
+    - prealloc
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - wsl
