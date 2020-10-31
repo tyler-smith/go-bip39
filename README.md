@@ -5,10 +5,10 @@ Use [bip39](https://github.com/bitcoin/bips/tree/master/bip-0039) in Go!
 [![PkgGoDev](https://pkg.go.dev/badge/tyler-smith/go-bip39)](https://pkg.go.dev/tyler-smith/go-bip39)
 [![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
 [![MIT License](https://img.shields.io/github/license/tyler-smith/go-bip39.svg?maxAge=2592000&color=blue)](https://github.com/tyler-smith/go-bip39/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/tyler-smith/go-bip39.svg?branch=master)](https://travis-ci.org/tyler-smith/go-bip39)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tyler-smith/go-bip39)](https://goreportcard.com/report/github.com/tyler-smith/go-bip39)
-
 [![Contributors](https://img.shields.io/github/contributors/tyler-smith/go-bip39.svg?color=blue)](https://github.com/tyler-smith/go-bip39/graphs/contributors)
+
+[![Build check](https://github.com/tyler-smith/go-bip39/workflows/build-check/badge.svg?branch=master)](https://github.com/tyler-smith/go-bip39/actions?query=workflow%3Abuild-check+branch%3Amaster)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tyler-smith/go-bip39)](https://goreportcard.com/report/github.com/tyler-smith/go-bip39)
 [![PGP](https://img.shields.io/keybase/pgp/tylersmith?color=green)](https://keybase.io/tylersmith)
 
 ## Example
