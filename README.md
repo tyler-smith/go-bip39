@@ -1,7 +1,7 @@
 ![The bip39 library for Go](assets/images/banner.png)
 
-[![PkgGoDev](https://pkg.go.dev/badge/tyler-smith/go-bip39)](https://pkg.go.dev/tyler-smith/go-bip39)
-[![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
+[![PkgGoDev](https://pkg.go.dev/badge/tyler-smith/go-bip39)](https://pkg.go.dev/github.com/tyler-smith/go-bip39)
+[![Latest release](https://img.shields.io/github/v/tag/tyler-smith/go-bip39?label=release&sort=semver)](https://github.com/tyler-smith/go-bip39/releases)
 [![MIT License](https://img.shields.io/github/license/tyler-smith/go-bip39.svg?maxAge=2592000&color=blue)](https://github.com/tyler-smith/go-bip39/blob/master/LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/tyler-smith/go-bip39.svg?color=blue)](https://github.com/tyler-smith/go-bip39/graphs/contributors)
 
