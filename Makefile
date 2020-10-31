@@ -2,10 +2,9 @@
 
 .PHONY: tests profile_tests build_check
 tests: ## Run tests with coverage
-	@go test -v -cover ./...
-
-profile_tests: ## Run tests and output coverage profiling
 	@go test -v -coverprofile=coverage.out ./...
+
+profile_tests: tests ## Run tests and output coverage profiling
 	@go tool cover -html=coverage.out
 
 build_check: ## Checks build and tests

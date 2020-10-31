@@ -1,10 +1,10 @@
 ---
+
 name: build-check
-on:
-  - push
-  - pull_request
+on: [push, pull_request]
 jobs:
   build-check:
+    name: build-check Go ${{ matrix.go }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -15,10 +15,23 @@ jobs:
           - '1.13'
           - '1.12'
           - '1.11'
-    name: build-check Go ${{ matrix.go }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
       - run: make build_check
+  test-coverage:
+    name: build-check Go ${{ matrix.go }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.15
+      - name: Get test coverage
+        run: make tests
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: coverage.out
