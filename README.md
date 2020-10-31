@@ -1,6 +1,4 @@
-# go-bip39
-
-Use [bip39](https://github.com/bitcoin/bips/tree/master/bip-0039) in Go!
+![The bip39 library for Go](assets/images/banner.png)
 
 [![PkgGoDev](https://pkg.go.dev/badge/tyler-smith/go-bip39)](https://pkg.go.dev/tyler-smith/go-bip39)
 [![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
@@ -17,7 +15,7 @@ Use [bip39](https://github.com/bitcoin/bips/tree/master/bip-0039) in Go!
 package main
 
 import (
-	"fmt"
+  "fmt"
   "github.com/tyler-smith/go-bip39"
   "github.com/tyler-smith/go-bip32"
 )
