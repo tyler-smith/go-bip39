@@ -4,7 +4,7 @@ name: build-check
 on: [push, pull_request]
 jobs:
   build-check:
-    name: build-check on Go ${{ matrix.go }}
+    name: Run build-check on Go ${{ matrix.go }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -20,8 +20,8 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: make build_check
-  test-coverage:
-    name: Test Coverage
+  save-test-coverage:
+    name: Save test coverage
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
