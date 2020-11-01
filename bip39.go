@@ -14,7 +14,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/tyler-smith/go-bip39/wordlists"
+	v2 "github.com/tyler-smith/go-bip39/v2"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -44,11 +44,7 @@ var (
 		21: big.NewInt(2),
 	}
 
-	// wordList is the set of words to use.
-	wordList []string
-
-	// wordMap is a reverse lookup map for wordList.
-	wordMap map[string]int
+	langauge = v2.English
 )
 
 var (
@@ -68,30 +64,32 @@ var (
 	ErrChecksumIncorrect = errors.New("Checksum incorrect")
 )
 
-func init() {
-	SetWordList(wordlists.English)
-}
-
 // SetWordList sets the list of words to use for mnemonics. Currently the list
 // that is set is used package-wide.
-func SetWordList(list []string) {
-	wordList = list
-	wordMap = map[string]int{}
-
-	for i, v := range wordList {
-		wordMap[v] = i
-	}
-}
+//func SetWordList(list []string) {
+//	//words := []
+//	//langauge = v2.NewLanguage()
+//	wordList = list
+//	wordMap = map[string]int{}
+//
+//	for i, v := range wordList {
+//		wordMap[v] = i
+//	}
+//}
 
 // GetWordList gets the list of words to use for mnemonics.
 func GetWordList() []string {
-	return wordList
+	words := make([]string, 2048)
+	for i := range words {
+		words[i] = langauge.GetWord(uint16(i))
+	}
+	return words
 }
 
 // GetWordIndex gets word index in wordMap.
 func GetWordIndex(word string) (int, bool) {
-	idx, ok := wordMap[word]
-	return idx, ok
+	idx, ok := langauge.GetWordIndex(word)
+	return int(idx), ok
 }
 
 // NewEntropy will create random entropy bytes
