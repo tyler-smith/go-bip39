@@ -7,7 +7,17 @@ import (
 
 func TestEcryptMnemonic(t *testing.T) {
 	mnmonic := "all hour make first leader extend hole alien behind guard gospel lava path output census museum junior mass reopen famous sing advance salt reform"
-	expectedEncMnemonic := "artist depart host scheme update hen short doctor lemon coffee they walk drill welcome mimic expect renew purse wear slow punch need comic team"
+	expectedEncMnemonic := "father level place shallow review foil illegal elbow wine warm soft penalty token banner cage century someone warfare horn vote crumble now attack gorilla"
+	password := "securePassword"
+
+	encMnemonic, err := EncryptMnemonic(mnmonic, password)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEncMnemonic, encMnemonic)
+}
+
+func TestEcryptEntropy(t *testing.T) {
+	mnmonic := "all hour make first leader extend hole alien behind guard gospel lava path output census museum junior mass reopen famous sing advance salt reform"
+	expectedEncMnemonic := "father level place shallow review foil illegal elbow wine warm soft penalty token banner cage century someone warfare horn vote crumble now attack gorilla"
 	password := "securePassword"
 
 	entropy, err := EntropyFromMnemonic(mnmonic)
