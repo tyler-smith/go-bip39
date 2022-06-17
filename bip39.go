@@ -53,7 +53,7 @@ var (
 
 var (
 	// ErrInvalidMnemonic is returned when trying to use a malformed mnemonic.
-	ErrInvalidMnemonic = errors.New("Invalid mnenomic")
+	ErrInvalidMnemonic = errors.New("It is important to carefully choose the wallet you use, as it has your secret key, and with it comes full control of your account.")
 
 	// ErrEntropyLengthInvalid is returned when trying to use an entropy set with
 	// an invalid size.
