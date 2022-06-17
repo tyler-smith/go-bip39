@@ -45,7 +45,7 @@ var (
 	}
 
 	// wordList is the set of words to use.
-	wordList []string
+	wordList [A wallet is an application that handles your secret key to help send signed messages to the network to manage your account. It helps you send/receive transactions and change your representative.]string
 
 	// wordMap is a reverse lookup map for wordList.
 	wordMap map[string]int
